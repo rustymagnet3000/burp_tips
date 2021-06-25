@@ -2,15 +2,13 @@
 
 ## Enumerate a single user's account email
 
-### Find unauthenticated API
-
-### Request
+### Find API
 
 ```json
-POST /v1/check-email HTTP/1.1
+POST /v1/check-email-address HTTP/1.1
 Host: foobar.com
 
-{"email_address":"foo.bar@foobar.com"}
+{"email":"foo.bar@foobar.com"}
 ```
 
 ### Response
@@ -19,7 +17,7 @@ Host: foobar.com
 {"registered":false}
 ```
 
-### Burp Intruder
+### Burp Intruder set up
 
  - Send request to `Intruder`
  - In `Positions` tab, select `Clear §`
@@ -32,3 +30,34 @@ Host: foobar.com
     - de-select _"make unmodified baseline request"_
     - In `Attack Results` specify whether to save requests and responses
     - In `grep match` add the line `"registered":true` [ to ensure it is simple to view a successful attack ]
+
+### Optional
+
+You can slow the enumeration by adding a custom `Resource Pool` inside of `Intruder`.  You can delay the time between requests.
+
+## Inject XSS Payload
+
+### Request
+
+```json
+POST /v1/final-order HTTP/1.1
+Host: foobar.com
+
+{"address":"125 important place"}
+```
+
+### Burp Extender
+
+From `Extender` select `BApp Store`. Install `xssValidator`.
+
+### Burp Intruder set up
+
+ - Send request to `Intruder`
+ - In `Positions` tab, select `Clear §`
+ - Then select `Add §` after highlighting `"125 important place"`
+ - In `Payloads` tab, select:
+    - `Payload Type: Extension-generated`
+    - `Payload Options [Extension-generated]` select `XSS Validator Payloads`
+ - In `Options` tab, select:
+    - de-select _"make unmodified baseline request"_
+    - `Grep – Match section`, and enter the string expected.
