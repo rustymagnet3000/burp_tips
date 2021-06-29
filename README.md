@@ -61,3 +61,25 @@ From `Extender` select `BApp Store`. Install `xssValidator`.
  - In `Options` tab, select:
     - de-select _"make unmodified baseline request"_
     - `Grep – Match section`, and enter the string expected.
+
+## JMeter
+
+### Set a replayed request
+
+`Copy as cURL` from within Firefox Web Developer.
+
+`/Tools/Import from cURL`
+Test 1: 5000 requests
+
+Set the `Thread Group`:
+   Number of Threads (users): ${__P(threads,10)}
+   Ramp-up period (seconds): ${__P(rampup,30)}
+   Loop Count: Infinite
+
+Right click on `Thread Group` and select `Add Think Time to Children`.
+
+Select `HTTP Request` and set the `Use KeepAlive`.
+
+Then adjust the `Think Time` as required.
+
+Right click on `Thread Group` and select `Validate`.
