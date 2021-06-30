@@ -1,5 +1,15 @@
 # Tips to get Burp flexing
 
+## Replay the same requests many times
+
+You can do this with Intruder ( not Repeater, as you might expect ).  
+
+ - Send request to `Intruder`
+ - In `Positions` tab, `Clear §`
+ - In `Payloads` tab, select:
+    - `Payload Type: Null Payment`
+    -  Select number of requests to replay
+
 ## Enumerate a single user's account email
 
 ### Find API
