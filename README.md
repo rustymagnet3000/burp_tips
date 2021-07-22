@@ -1,5 +1,16 @@
 # Tips to get Burp flexing
 
+## Search saved Burp files
+
+```bash
+grep --include=\*.burp -rnw . -e "hotel"
+
+
+# -r recursive
+# -n line number
+# -w match whole word
+```
+
 ## Replay the same requests many times
 
 You can do this with Intruder ( not Repeater, as you might expect ).  
