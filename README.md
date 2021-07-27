@@ -83,6 +83,14 @@ From `Extender` select `BApp Store`. Install `xssValidator`.
     - de-select _"make unmodified baseline request"_
     - `Grep – Match section`, and enter the string expected.
 
+## Command line macOS proxy
+
+on `macOS`, it is simpler to proxy command line apps - such as Rust, Swift, C - using an environment variable:
+
+`export https_proxy=127.0.0.1:8081`
+
+For Desktop apps like Safari or Slack, you have to change the macOS Network Proxy settings.
+
 ## JMeter
 
 ### Set a replayed request
