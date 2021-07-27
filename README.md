@@ -1,4 +1,4 @@
-# Tips to get Burp flexing
+# Burp and JMeter flexing
 
 ## Search saved Burp files
 
@@ -104,3 +104,20 @@ Select `HTTP Request` and set the `Use KeepAlive`.
 Then adjust the `Think Time` as required.
 
 Right click on `Thread Group` and select `Validate`.
+
+### Send Parallel requests
+
+If you want to exhaust a service, parallel requests use a new HTTP client for each request ( which is different from Concurrent requests which uses a single HTTP client).
+
+Import the cURL request (`/Tools/Import from cURL` )
+
+Right click on the imported `HTTP Request`:
+
+- `Add/Listener/View Results in Table`
+- `Add/Time/Synchronizing Timer`
+
+On `Synchronizing Timer`, select `Number of Simulated Users to Group by: 10`
+
+Then go to `"View Results by Table"`.  Select Play.
+
+Notice 10 requests sent at once.
