@@ -1,5 +1,35 @@
 # Burp and JMeter flexing
 
+## Proxy traffic
+
+### macOS env variable
+
+on `macOS`, it is simpler to proxy command line apps - such as Rust, Python, C - using an environment variable:
+
+```bash
+export https_proxy=127.0.0.1:8081
+export http_proxy=127.0.0.1:8081
+
+# Test it:
+curl https://ifconfig.io
+```
+
+### macOS Desktop apps
+
+With Safari or Slack, you have to change the macOS Network Proxy settings.
+
+### Proxy OpenSSL
+
+No `invisible proxy` is required to read OpenSSL traffic if you use the `proxy` flag.
+
+`curl -x, --proxy 127.0.0.1:8080 https://httpbin.org/ip`
+
+### Add debug logging, as alternative to proxying
+
+Some AWS libraries can be debugged by setting an environment variable to print network requests. For example:
+
+`RUST_LOG=debug my_rust_app`
+
 ## Search saved Burp files
 
 ```bash
@@ -82,14 +112,6 @@ From `Extender` select `BApp Store`. Install `xssValidator`.
  - In `Options` tab, select:
     - de-select _"make unmodified baseline request"_
     - `Grep – Match section`, and enter the string expected.
-
-## Command line macOS proxy
-
-on `macOS`, it is simpler to proxy command line apps - such as Rust, Swift, C - using an environment variable:
-
-`export https_proxy=127.0.0.1:8081`
-
-For Desktop apps like Safari or Slack, you have to change the macOS Network Proxy settings.
 
 ## JMeter
 
