@@ -1,6 +1,17 @@
 # Burp and JMeter flexing
 
-## Proxy traffic
+<!-- TOC depthfrom:2 depthto:2 withlinks:true updateonsave:true orderedlist:false -->
+
+- [Proxy traffic through Burp](#proxy-traffic-through-burp)
+- [Search saved Burp files](#search-saved-burp-files)
+- [Replay the same requests many times](#replay-the-same-requests-many-times)
+- [Enumerate a single user's account email](#enumerate-a-single-users-account-email)
+- [Inject XSS Payload](#inject-xss-payload)
+- [JMeter](#jmeter)
+
+<!-- /TOC -->
+
+## Proxy traffic through Burp
 
 ### macOS env variable
 
@@ -8,10 +19,11 @@ on `macOS`, it is simpler to proxy command line apps - such as Rust, Python, C -
 
 ```bash
 export https_proxy=127.0.0.1:8081
-export http_proxy=127.0.0.1:8081
 
 # Test it:
 curl https://ifconfig.io
+
+unset https_proxy
 ```
 
 ### macOS Desktop apps
@@ -22,13 +34,78 @@ With Safari or Slack, you have to change the macOS Network Proxy settings.
 
 No `invisible proxy` is required to read OpenSSL traffic if you use the `proxy` flag.
 
-`curl -x, --proxy 127.0.0.1:8080 https://httpbin.org/ip`
+```bash
+# original
+curl https://httpbin.org/ip
+
+# proxied
+curl -x, --proxy 127.0.0.1:8080 https://httpbin.org/ip
+
+# proxied
+openssl s_client -connect httpbin.org:443 -proxy 127.0.0.1:8080
+```
+
+### Invisble proxying
+
+For proxy unaware clients via Burp on macOS.
+
+```bash
+echo "[*]Invisible proxy script starting..";
+
+get_forwarding_status () {
+    forwarding_status="$(sysctl net.inet.ip.forwarding)"
+    if [ "${forwarding_status: -1}" -eq 1 ]; then
+        echo "Forwarding already on"
+    else
+        sudo sysctl -w net.inet.ip.forwarding=1
+        echo "Turned on forwarding"
+    fi
+    unset forwarding_status
+}
+
+set_port_forwarding_rules () {
+    sudo pfctl -s nat &> ~/fifo.txt
+
+    if grep -q '80 -> 127.0.0.1 port 8080' ~/fifo.txt && grep -q '443 -> 127.0.0.1 port 8080' ~/fifo.txt; then
+        echo "-> Port Forwarding rules already on"
+    else
+        echo "rdr pass inet proto tcp from any to any port { 80 443 54492 51814 } -> 127.0.0.1 port 8080" | sudo pfctl -ef -
+        echo "Port Forwarding rules added"
+    fi
+    echo "[*]Removing temporary file";
+    if rm ~/fifo.txt ; then echo "Removed fifo.txt" ; fi
+}
+
+while getopts ": aAcC" opt; do
+case $opt in
+        [aA])
+            echo "[*]CHECK FOR KERNAL FORWARDING";
+            get_forwarding_status;
+            set_port_forwarding_rules;
+            echo "[*]SCRIPT COMPLETE";
+        exit 0;;
+
+    [cC]) echo "[*]CLEAN_UP";
+            sudo pfctl -F all -f /etc/pf.conf;
+            sudo sysctl -w net.inet.ip.forwarding=0;
+            echo "[*]SCRIPT COMPLETE";
+        exit 0;;
+
+    \?) echo "[!]Invalid option: -$OPTARG" >&2;exit 0;;
+esac
+done
+echo "[!]Enter [-a] add [-c] clean Proxy Rules";
+```
 
 ### Add debug logging, as alternative to proxying
 
 Some AWS libraries can be debugged by setting an environment variable to print network requests. For example:
 
 `RUST_LOG=debug my_rust_app`
+
+Or:
+
+`RUST_LOG=rusoto,hyper=debug`
 
 ## Search saved Burp files
 
