@@ -8,6 +8,7 @@
 - [Enumerate a single user's account email](#enumerate-a-single-users-account-email)
 - [Inject XSS Payload](#inject-xss-payload)
 - [JMeter](#jmeter)
+- [Apache Bench to load test a container](#apache-bench-to-load-test-a-container)
 
 <!-- /TOC -->
 
@@ -69,7 +70,7 @@ set_port_forwarding_rules () {
     if grep -q '80 -> 127.0.0.1 port 8080' ~/fifo.txt && grep -q '443 -> 127.0.0.1 port 8080' ~/fifo.txt; then
         echo "-> Port Forwarding rules already on"
     else
-        echo "rdr pass inet proto tcp from any to any port { 80 443 54492 51814 } -> 127.0.0.1 port 8080" | sudo pfctl -ef -
+        echo "rdr pass inet proto tcp from any to any port { 80 443 } -> 127.0.0.1 port 8080" | sudo pfctl -ef -
         echo "Port Forwarding rules added"
     fi
     echo "[*]Removing temporary file";
@@ -228,3 +229,22 @@ On `Synchronizing Timer`, select `Number of Simulated Users to Group by: 10`
 Then go to `"View Results by Table"`.  Select Play.
 
 Notice 10 requests sent at once.
+
+## Apache Bench to load test a container
+
+```bash
+
+    -n: Number of requests
+    -c: Number of concurrent requests
+    -H: Add header
+    —r: flag to not exit on socket receive errors
+    -k: Use HTTP KeepAlive feature
+    -p: File containing data to POST
+    -T: Content-type header to use for POST/PUT data,
+
+
+#GET with Header
+ab -n 100 -c 10 -H "Accept-Encoding: gzip, deflate" -rk https://0.0.0.0:4000/
+#POST
+ab -n 100 -c 10 -p data.json -T application/json -rk https://0.0.0.0:4000/
+```
