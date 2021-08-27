@@ -2,17 +2,17 @@
 
 <!-- TOC depthfrom:2 depthto:2 withlinks:true updateonsave:true orderedlist:false -->
 
-- [Proxy traffic through Burp](#proxy-traffic-through-burp)
-- [Search saved Burp files](#search-saved-burp-files)
-- [Replay the same requests many times](#replay-the-same-requests-many-times)
-- [Enumerate a single user's account email](#enumerate-a-single-users-account-email)
+- [Proxy traffic](#proxy-traffic)
+- [Search Burp files](#search-burp-files)
+- [Replay requests](#replay-requests)
+- [Enumeration](#enumeration)
 - [Inject XSS Payload](#inject-xss-payload)
 - [JMeter](#jmeter)
-- [Apache Bench to load test a container](#apache-bench-to-load-test-a-container)
+- [Apache Bench](#apache-bench)
 
 <!-- /TOC -->
 
-## Proxy traffic through Burp
+## Proxy traffic
 
 ### macOS env variable
 
@@ -108,7 +108,7 @@ Or:
 
 `RUST_LOG=rusoto,hyper=debug`
 
-## Search saved Burp files
+## Search Burp files
 
 ```bash
 grep --include=\*.burp -rnw . -e "hotel"
@@ -119,7 +119,9 @@ grep --include=\*.burp -rnw . -e "hotel"
 # -w match whole word
 ```
 
-## Replay the same requests many times
+## Replay requests
+
+### Same requests many times
 
 You can do this with Intruder ( not Repeater, as you might expect ).  
 
@@ -129,12 +131,12 @@ You can do this with Intruder ( not Repeater, as you might expect ).
     - `Payload Type: Null Payment`
     -  Select number of requests to replay
 
-## Enumerate a single user's account email
+## Enumeration
 
 ### Find API
 
 ```json
-POST /v1/check-email-address HTTP/1.1
+POST /check-email-address
 Host: foobar.com
 
 {"email":"foo.bar@foobar.com"}
@@ -230,7 +232,9 @@ Then go to `"View Results by Table"`.  Select Play.
 
 Notice 10 requests sent at once.
 
-## Apache Bench to load test a container
+## Apache Bench
+
+### load test a container
 
 ```bash
 
@@ -247,4 +251,17 @@ Notice 10 requests sent at once.
 ab -n 100 -c 10 -H "Accept-Encoding: gzip, deflate" -rk https://0.0.0.0:4000/
 #POST
 ab -n 100 -c 10 -p data.json -T application/json -rk https://0.0.0.0:4000/
+```
+
+### Verbose flag to verify HTTP response code
+
+```bash
+ab \
+	-v 4 \
+	-n 1 \
+	-c 1 \
+	-p foobar_body.json \
+	-T application/json \
+	-H "Authorization:Bearer xxxxxxx" \
+	-rk ${FOOBAR_TEST_URL}
 ```
