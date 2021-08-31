@@ -9,6 +9,7 @@
 - [Inject XSS Payload](#inject-xss-payload)
 - [JMeter](#jmeter)
 - [Apache Bench](#apache-bench)
+- [haproxy](#haproxy)
 
 <!-- /TOC -->
 
@@ -264,4 +265,43 @@ ab \
 	-T application/json \
 	-H "Authorization:Bearer xxxxxxx" \
 	-rk ${FOOBAR_TEST_URL}
+```
+
+## haproxy
+
+### Install
+
+```bash
+brew install haproxy
+brew info haproxy
+haproxy -v
+```
+
+### Run
+
+```bash
+brew services start haproxy
+brew services stop haproxy
+sudo haproxy -f haproxy.cfg -db
+```
+
+### Example Proxy Pass config file
+
+```js
+// haproxy.cfg
+// https://www.haproxy.com/blog/haproxy-configuration-basics-load-balance-your-servers/
+
+defaults
+  mode http
+  timeout client 10s
+  timeout connect 5s
+  timeout server 10s 
+  timeout http-request 10s
+
+frontend myfrontend
+  bind 127.0.0.1:8080
+  default_backend myservers
+
+backend myservers
+  server server1 127.0.0.1:8000
 ```
