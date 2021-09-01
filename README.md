@@ -282,10 +282,15 @@ haproxy -v
 ```bash
 brew services start haproxy
 brew services stop haproxy
-sudo haproxy -f haproxy.cfg -db
+
+# verbose
+sudo haproxy -f haproxy.cfg -V
+
+# silent
+sudo haproxy -f haproxy.cfg
 ```
 
-### Example Proxy Pass config file
+### Example Proxy Pass all data
 
 ```js
 // haproxy.cfg
@@ -304,4 +309,28 @@ frontend myfrontend
 
 backend myservers
   server server1 127.0.0.1:8000
+```
+
+### Example remove Cookies and add header
+
+```js
+// https://www.haproxy.com/documentation/hapee/latest/traffic-routing/rewrites/rewrite-requests/
+defaults
+  mode http
+  timeout client 10s
+  timeout connect 5s
+  timeout server 10s
+  timeout http-request 10s
+
+frontend myfrontend
+  bind 127.0.0.1:8080
+  acl h_xff_exists req.hdr(X-Forwarded-For) -m found
+  http-request add-header X-Forwarded-For %[src] unless h_xff_exists
+  default_backend myservers
+
+backend myservers
+  acl at_least_one_cookie req.cook_cnt() gt 0
+  http-request del-header Cookie if at_least_one_cookie
+  server server1 127.0.0.1:8000
+
 ```
