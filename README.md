@@ -1,15 +1,33 @@
-# Burp and JMeter flexing
+# Burp, JMeter, AB, HAProxy, cURL tips
 
-<!-- TOC depthfrom:2 depthto:2 withlinks:true updateonsave:true orderedlist:false -->
+<!-- TOC depthfrom:2 depthto:3 withlinks:true updateonsave:true orderedlist:false -->
 
 - [Proxy traffic](#proxy-traffic)
-- [Search Burp files](#search-burp-files)
-- [Replay requests](#replay-requests)
-- [Enumeration](#enumeration)
-- [Inject XSS Payload](#inject-xss-payload)
+    - [macOS env variable](#macos-env-variable)
+    - [macOS Desktop apps](#macos-desktop-apps)
+    - [Proxy OpenSSL](#proxy-openssl)
+    - [Invisble proxying](#invisble-proxying)
+    - [Add debug logging, as alternative to proxying](#add-debug-logging-as-alternative-to-proxying)
+- [Burp](#burp)
+    - [Search Burp files](#search-burp-files)
+    - [Replay requests](#replay-requests)
+    - [Replay requests turbo](#replay-requests-turbo)
+    - [Enumeration](#enumeration)
+    - [Inject XSS Payload](#inject-xss-payload)
 - [JMeter](#jmeter)
+    - [Set a replayed request](#set-a-replayed-request)
+    - [Send Parallel requests](#send-parallel-requests)
 - [Apache Bench](#apache-bench)
+    - [load test a container](#load-test-a-container)
+    - [Verbose flag to verify HTTP response code](#verbose-flag-to-verify-http-response-code)
 - [haproxy](#haproxy)
+    - [Install](#install)
+    - [Run](#run)
+    - [Validate config file](#validate-config-file)
+    - [Example Proxy Pass all data](#example-proxy-pass-all-data)
+    - [Example remove Cookies and add header](#example-remove-cookies-and-add-header)
+    - [Replace user-agent](#replace-user-agent)
+- [cURL](#curl)
 
 <!-- /TOC -->
 
@@ -109,7 +127,9 @@ Or:
 
 `RUST_LOG=rusoto,hyper=debug`
 
-## Search Burp files
+## Burp
+
+### Search Burp files
 
 ```bash
 grep --include=\*.burp -rnw . -e "hotel"
@@ -120,9 +140,9 @@ grep --include=\*.burp -rnw . -e "hotel"
 # -w match whole word
 ```
 
-## Replay requests
+### Replay requests
 
-### Same requests many times
+#### Same requests many times
 
 You can do this with Intruder ( not Repeater, as you might expect ).  
 
@@ -132,24 +152,28 @@ You can do this with Intruder ( not Repeater, as you might expect ).
     - `Payload Type: Null Payment`
     -  Select number of requests to replay
 
-## Enumeration
+### Replay requests (turbo)
 
-### Find API
+`Turbo Intruder` is a `Burp Suite extension` for sending large numbers of HTTP requests when you require extreme speed.
+
+### Enumeration
+
+#### Find API
 
 ```json
-POST /check-email-address
+POST /check-account
 Host: foobar.com
 
 {"email":"foo.bar@foobar.com"}
 ```
 
-### Response
+#### Response
 
 ```json
 {"registered":false}
 ```
 
-### Burp Intruder set up
+#### Burp Intruder - Username Generator
 
  - Send request to `Intruder`
  - In `Positions` tab, select `Clear §`
@@ -163,13 +187,20 @@ Host: foobar.com
     - In `Attack Results` specify whether to save requests and responses
     - In `grep match` add the line `"registered":true` [ to ensure it is simple to view a successful attack ]
 
-### Optional
+#### Burp Intruder - Brute Forcer
 
-You can slow the enumeration by adding a custom `Resource Pool` inside of `Intruder`.  You can delay the time between requests.
+ - < same as above steps>
+ - In `Payloads` tab, select:
+  - `Payload Type: Brute Forcer`
+    - Select the `Character Set`
+    - Select the `min length` and `max length`
+  
 
-## Inject XSS Payload
+> You can slow the enumeration attempt to avoid `Rate Limits` by adding a custom `Resource Pool` inside of `Intruder`.  You can delay the time between requests.
 
-### Request
+### Inject XSS Payload
+
+#### Request
 
 ```json
 POST /v1/final-order HTTP/1.1
@@ -178,11 +209,11 @@ Host: foobar.com
 {"address":"125 important place"}
 ```
 
-### Burp Extender
+#### Burp Extender
 
 From `Extender` select `BApp Store`. Install `xssValidator`.
 
-### Burp Intruder set up
+#### Burp Intruder set up
 
  - Send request to `Intruder`
  - In `Positions` tab, select `Clear §`
@@ -290,6 +321,10 @@ sudo haproxy -f haproxy.cfg -V
 sudo haproxy -f haproxy.cfg
 ```
 
+### Validate config file
+
+`haproxy -c -f haproxy.cfg`
+
 ### Example Proxy Pass all data
 
 ```js
@@ -333,4 +368,28 @@ backend myservers
   http-request del-header Cookie if at_least_one_cookie
   server server1 127.0.0.1:8000
 
+```
+
+### Replace user-agent
+
+```bash
+# http://cbonte.github.io/haproxy-dconv/2.0/configuration.html#1.2.2
+
+http-request replace-header User-Agent curl foo
+
+# applied to:
+User-Agent: curl/7.47.0
+
+# outputs:
+User-Agent: foo
+```
+
+## cURL
+
+```bash
+#generate a random cookie string
+curl 127.0.0.1:8080 --cookie "CUSTOMER_COOKIE=$(openssl rand -hex 4)"
+
+#get all DockerHub images from a company
+curl -s "https://hub.docker.com/v2/repositories/someCompany/?page_size=100" | jq -r '.results|.[]|.name'
 ```
