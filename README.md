@@ -19,7 +19,6 @@
     - [Send Parallel requests](#send-parallel-requests)
 - [Apache Bench](#apache-bench)
     - [load test a container](#load-test-a-container)
-    - [Verbose flag to verify HTTP response code](#verbose-flag-to-verify-http-response-code)
 - [haproxy](#haproxy)
     - [Install](#install)
     - [Run](#run)
@@ -156,6 +155,10 @@ You can do this with Intruder ( not Repeater, as you might expect ).
 
 `Turbo Intruder` is a `Burp Suite extension` for sending large numbers of HTTP requests when you require extreme speed.
 
+The author of this extender said:
+
+> it's designed for sending lots of requests to a single host. If you want to send a single request to a lot of hosts, I recommend ZGrab.
+
 ### Enumeration
 
 #### Find API
@@ -276,26 +279,45 @@ Notice 10 requests sent at once.
     —r: flag to not exit on socket receive errors
     -k: Use HTTP KeepAlive feature
     -p: File containing data to POST
+    -X proxy:port   Proxyserver and port number to use
     -T: Content-type header to use for POST/PUT data,
 
 
 #GET with Header
 ab -n 100 -c 10 -H "Accept-Encoding: gzip, deflate" -rk https://0.0.0.0:4000/
-#POST
-ab -n 100 -c 10 -p data.json -T application/json -rk https://0.0.0.0:4000/
+
+#POST locally
+ab -n 100 -c 10 -p data.json -rk https://0.0.0.0:4000/
+
+#POST with 5 second timeout ( default is 30 seconds )
+ab -n 1 -c 1 -s 5 -p payload.json -T application/json -rk https://httpbin.org/post
+
+#POST proxy request ( as env variable does not work)
+ab -n 1 -c 1 -p payload.json -T application/json -rk -X 127.0.0.1:8081 https://httpbin.org/post
+
 ```
 
-### Verbose flag to verify HTTP response code
+#### Verbose flag to verify HTTP response code
 
 ```bash
+export BEARER="Authorization:Bearer xxxxxxx"
+export TARGET_URL_AND_PATH="https://httpbin.org/post"
+
+# --verbose 2 gives you a HTTP response code
+# --verbose 4 gives all cert details of server
+
 ab \
-	-v 4 \
-	-n 1 \
-	-c 1 \
-	-p foobar_body.json \
-	-T application/json \
-	-H "Authorization:Bearer xxxxxxx" \
-	-rk ${FOOBAR_TEST_URL}
+        -v 2 \
+        -n 1 \
+        -c 1 \
+        -p payload.json \
+        -T application/json \
+        -H $'X-Roo-Guid: a061be2c-016a-40d2-90ea-c88184fff0eb' \
+        -H $'X-Roo-Client: consumer-web-app' \
+        -H ${BEARER} \
+        -rk \
+        ${TARGET_URL_AND_PATH}
+
 ```
 
 ## haproxy
@@ -392,4 +414,21 @@ curl 127.0.0.1:8080 --cookie "CUSTOMER_COOKIE=$(openssl rand -hex 4)"
 
 #get all DockerHub images from a company
 curl -s "https://hub.docker.com/v2/repositories/someCompany/?page_size=100" | jq -r '.results|.[]|.name'
+
+
+#loop requests with cURL
+for i in {1..10}; do curl -s -k https://httpbin.org/ip; done | grep origin
+
+#post with Cookies and Bearer Token
+curl -X POST \
+    -H "Content-Type: application/json" \
+    -H $'Accept: application/json' \
+    -H $'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15);' \
+    -H $'Accept-Language: en' \
+    -H ${BEARER} \
+    -H $'Connection: close' \
+    --data-binary $'{\"foo\":\"json\"}' \
+    ${TARGET_URL_AND_PATH}
+
+
 ```
