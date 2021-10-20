@@ -312,8 +312,7 @@ ab \
         -c 1 \
         -p payload.json \
         -T application/json \
-        -H $'X-Roo-Guid: a061be2c-016a-40d2-90ea-c88184fff0eb' \
-        -H $'X-Roo-Client: consumer-web-app' \
+        -H $'device-guid: aaaaa' \
         -H ${BEARER} \
         -rk \
         ${TARGET_URL_AND_PATH}
@@ -419,7 +418,7 @@ curl -s "https://hub.docker.com/v2/repositories/someCompany/?page_size=100" | jq
 #loop requests with cURL
 for i in {1..10}; do curl -s -k https://httpbin.org/ip; done | grep origin
 
-#post with Cookies and Bearer Token
+#post wit Bearer Token ( zero cookies )
 curl -X POST \
     -H "Content-Type: application/json" \
     -H $'Accept: application/json' \
@@ -429,6 +428,5 @@ curl -X POST \
     -H $'Connection: close' \
     --data-binary $'{\"foo\":\"json\"}' \
     ${TARGET_URL_AND_PATH}
-
 
 ```
