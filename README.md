@@ -327,6 +327,8 @@ ab \
 brew install haproxy
 brew info haproxy
 haproxy -v
+brew deps --tree haproxy
+brew options haproxy
 ```
 
 ### Run
@@ -334,6 +336,7 @@ haproxy -v
 ```bash
 brew services start haproxy
 brew services stop haproxy
+
 
 # verbose
 sudo haproxy -f haproxy.cfg -V
@@ -403,6 +406,27 @@ User-Agent: curl/7.47.0
 
 # outputs:
 User-Agent: foo
+```
+
+#### More HAProxy commands
+
+```bash
+
+# pointless set header to existing header
+http-request set-header User-Agent %[req.fhdr(User-Agent)]
+
+# set user-agent to deadbeef
+http-request set-header User-Agent deadbeef
+
+### Add the IP address of HAProxy
+option forwardfor
+
+# Random number header
+http-request add-header X-Random rand(1:100),mul(2),sub(5),add(3),div(2)
+
+# Device info (option is only available when haproxy has been compiled with USE_51DEGREES)
+http-request set-header X-DeviceInfo %[51d.all(DeviceType,IsMobile,IsTablet)]
+#Please note that this 
 ```
 
 ## cURL
