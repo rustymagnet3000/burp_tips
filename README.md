@@ -17,6 +17,7 @@
 - [JMeter](#jmeter)
     - [Set a replayed request](#set-a-replayed-request)
     - [Send Parallel requests](#send-parallel-requests)
+- [cURL](#curl)
 - [Apache Bench](#apache-bench)
     - [load test a container](#load-test-a-container)
 - [haproxy](#haproxy)
@@ -26,7 +27,6 @@
     - [Example Proxy Pass all data](#example-proxy-pass-all-data)
     - [Example remove Cookies and add header](#example-remove-cookies-and-add-header)
     - [Replace user-agent](#replace-user-agent)
-- [cURL](#curl)
 
 <!-- /TOC -->
 
@@ -61,7 +61,7 @@ curl https://httpbin.org/ip
 curl -x, --proxy 127.0.0.1:8080 https://httpbin.org/ip
 
 # proxied
-openssl s_client -connect httpbin.org:443 -proxy 127.0.0.1:8080
+openssl s_client -connect httpbin.org:443 -proxy 127.0.0.1:8081
 ```
 
 ### Invisble proxying
@@ -234,13 +234,18 @@ From `Extender` select `BApp Store`. Install `xssValidator`.
 
 `Copy as cURL` from within Firefox Web Developer.
 
-`/Tools/Import from cURL`
+Select:
+- `/Tools/Import from cURL`.
+- `Add cookie header to Cookie Manager`.
+- Create Test Plan
+
 Test 1: 5000 requests
 
 Set the `Thread Group`:
-   Number of Threads (users): ${__P(threads,10)}
-   Ramp-up period (seconds): ${__P(rampup,30)}
-   Loop Count: Infinite
+
+- Number of Threads (users): `${__P(threads,10)}`
+- Ramp-up period (seconds): `${__P(rampup,1)}`
+- Loop Count: `10`
 
 Right click on `Thread Group` and select `Add Think Time to Children`.
 
@@ -249,6 +254,8 @@ Select `HTTP Request` and set the `Use KeepAlive`.
 Then adjust the `Think Time` as required.
 
 Right click on `Thread Group` and select `Validate`.
+
+To view results and server responses select `View Results Tree`.
 
 ### Send Parallel requests
 
@@ -266,6 +273,34 @@ On `Synchronizing Timer`, select `Number of Simulated Users to Group by: 10`
 Then go to `"View Results by Table"`.  Select Play.
 
 Notice 10 requests sent at once.
+
+## cURL
+
+```bash
+#generate a random cookie string
+curl 127.0.0.1:8080 --cookie "CUSTOMER_COOKIE=$(openssl rand -hex 4)"
+
+#get all DockerHub images from a company
+curl -s "https://hub.docker.com/v2/repositories/someCompany/?page_size=100" | jq -r '.results|.[]|.name'
+
+#Watch redirects
+curl -v -L ${TARGET_URL_AND_PATH} 2>&1 | egrep "^> (Host:|GET)"
+
+#loop requests with cURL
+for i in {1..10}; do curl -s -k https://httpbin.org/ip; done | grep origin
+
+#post wit Bearer Token ( zero cookies )
+curl -X POST \
+    -H "Content-Type: application/json" \
+    -H $'Accept: application/json' \
+    -H $'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15);' \
+    -H $'Accept-Language: en' \
+    -H ${BEARER} \
+    -H $'Connection: close' \
+    --data-binary $'{\"foo\":\"json\"}' \
+    ${TARGET_URL_AND_PATH}
+
+```
 
 ## Apache Bench
 
@@ -294,6 +329,15 @@ ab -n 1 -c 1 -s 5 -p payload.json -T application/json -rk https://httpbin.org/po
 
 #POST proxy request ( as env variable does not work)
 ab -n 1 -c 1 -p payload.json -T application/json -rk -X 127.0.0.1:8081 https://httpbin.org/post
+
+
+#GET request with Cookies and debug via a Proxy
+ab \
+	-n 3 \
+    -c 2 \
+ 	-C 'Cookie: foo=123;bar=345' \
+    -rk -X 127.0.0.1:8081 \
+    ${TARGET_URL_AND_PATH}
 
 ```
 
@@ -429,29 +473,10 @@ http-request set-header X-DeviceInfo %[51d.all(DeviceType,IsMobile,IsTablet)]
 #Please note that this 
 ```
 
-## cURL
+#### Debug HAProxy
 
 ```bash
-#generate a random cookie string
-curl 127.0.0.1:8080 --cookie "CUSTOMER_COOKIE=$(openssl rand -hex 4)"
-
-#get all DockerHub images from a company
-curl -s "https://hub.docker.com/v2/repositories/someCompany/?page_size=100" | jq -r '.results|.[]|.name'
-
-
-#loop requests with cURL
-for i in {1..10}; do curl -s -k https://httpbin.org/ip; done | grep origin
-
-#post wit Bearer Token ( zero cookies )
-curl -X POST \
-    -H "Content-Type: application/json" \
-    -H $'Accept: application/json' \
-    -H $'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15);' \
-    -H $'Accept-Language: en' \
-    -H ${BEARER} \
-    -H $'Connection: close' \
-    --data-binary $'{\"foo\":\"json\"}' \
-    ${TARGET_URL_AND_PATH}
-
+# Echo back request. Includes HTTP Headers
+docker run -p 8080:8080 --rm -t mendhak/http-https-echo:21
 ```
 
