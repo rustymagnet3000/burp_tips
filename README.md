@@ -4,6 +4,7 @@
 
 - [Proxy traffic](#proxy-traffic)
     - [macOS env variable](#macos-env-variable)
+    - [Jetbrains IDE](#jetbrains-ide)
     - [macOS Desktop apps](#macos-desktop-apps)
     - [Proxy OpenSSL](#proxy-openssl)
     - [Invisble proxying](#invisble-proxying)
@@ -16,6 +17,7 @@
     - [Inject XSS Payload](#inject-xss-payload)
 - [JMeter](#jmeter)
     - [Set a replayed request](#set-a-replayed-request)
+    - [Summary Report](#summary-report)
     - [Send Parallel requests](#send-parallel-requests)
 - [cURL](#curl)
 - [Apache Bench](#apache-bench)
@@ -43,6 +45,16 @@ export https_proxy=127.0.0.1:8081
 curl https://ifconfig.io
 
 unset https_proxy
+```
+
+### Jetbrains IDE
+
+For compiled languages, it is easier to produce a compiled binary and then proxy it via JetBrains IDE.  For example:
+
+```bash
+export https_proxy=127.0.0.1:8081
+./target/debug/playground
+// traffic will appear in Burp
 ```
 
 ### macOS Desktop apps
@@ -235,6 +247,7 @@ From `Extender` select `BApp Store`. Install `xssValidator`.
 `Copy as cURL` from within Firefox Web Developer.
 
 Select:
+
 - `/Tools/Import from cURL`.
 - `Add cookie header to Cookie Manager`.
 - Create Test Plan
@@ -256,6 +269,10 @@ Then adjust the `Think Time` as required.
 Right click on `Thread Group` and select `Validate`.
 
 To view results and server responses select `View Results Tree`.
+
+### Summary Report
+
+`Thread Group / Add / Listener / Summary Report `
 
 ### Send Parallel requests
 
