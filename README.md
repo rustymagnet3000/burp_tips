@@ -346,7 +346,7 @@ ab -n 1 -c 1 -s 5 -p payload.json -T application/json -rk ${TARGET_URL_AND_PATH}
 
 #Write AB results to file. Count successful requests
 ab -n 1000 -c 10 -C 'Cookie: foobar=1' -v 2 -r ${TARGET_URL_AND_PATH} > results.txt 2>&1
-cat results.txt| grep -c "HTTP/1.1 200 OK"
+cat results.txt| grep -c "200 OK"
 
 #POST proxy request ( as env variable does not work)
 ab -n 1 -c 1 -p payload.json -T application/json -rk -X 127.0.0.1:8081 ${TARGET_URL_AND_PATH}
