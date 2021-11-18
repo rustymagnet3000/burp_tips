@@ -4,6 +4,7 @@
 
 - [Proxy traffic](#proxy-traffic)
     - [macOS env variable](#macos-env-variable)
+    - [Jetbrains IDE](#jetbrains-ide)
     - [macOS Desktop apps](#macos-desktop-apps)
     - [Proxy OpenSSL](#proxy-openssl)
     - [Invisble proxying](#invisble-proxying)
@@ -16,7 +17,9 @@
     - [Inject XSS Payload](#inject-xss-payload)
 - [JMeter](#jmeter)
     - [Set a replayed request](#set-a-replayed-request)
+    - [Summary Report](#summary-report)
     - [Send Parallel requests](#send-parallel-requests)
+- [cURL](#curl)
 - [Apache Bench](#apache-bench)
     - [load test a container](#load-test-a-container)
 - [haproxy](#haproxy)
@@ -26,7 +29,6 @@
     - [Example Proxy Pass all data](#example-proxy-pass-all-data)
     - [Example remove Cookies and add header](#example-remove-cookies-and-add-header)
     - [Replace user-agent](#replace-user-agent)
-- [cURL](#curl)
 
 <!-- /TOC -->
 
@@ -45,6 +47,16 @@ curl https://ifconfig.io
 unset https_proxy
 ```
 
+### Jetbrains IDE
+
+For compiled languages, it is easier to produce a compiled binary and then proxy it via JetBrains IDE.  For example:
+
+```bash
+export https_proxy=127.0.0.1:8081
+./target/debug/playground
+// traffic will appear in Burp
+```
+
 ### macOS Desktop apps
 
 With Safari or Slack, you have to change the macOS Network Proxy settings.
@@ -61,7 +73,7 @@ curl https://httpbin.org/ip
 curl -x, --proxy 127.0.0.1:8080 https://httpbin.org/ip
 
 # proxied
-openssl s_client -connect httpbin.org:443 -proxy 127.0.0.1:8080
+openssl s_client -connect httpbin.org:443 -proxy 127.0.0.1:8081
 ```
 
 ### Invisble proxying
@@ -234,13 +246,19 @@ From `Extender` select `BApp Store`. Install `xssValidator`.
 
 `Copy as cURL` from within Firefox Web Developer.
 
-`/Tools/Import from cURL`
+Select:
+
+- `/Tools/Import from cURL`.
+- `Add cookie header to Cookie Manager`.
+- Create Test Plan
+
 Test 1: 5000 requests
 
 Set the `Thread Group`:
-   Number of Threads (users): ${__P(threads,10)}
-   Ramp-up period (seconds): ${__P(rampup,30)}
-   Loop Count: Infinite
+
+- Number of Threads (users): `${__P(threads,10)}`
+- Ramp-up period (seconds): `${__P(rampup,1)}`
+- Loop Count: `10`
 
 Right click on `Thread Group` and select `Add Think Time to Children`.
 
@@ -249,6 +267,12 @@ Select `HTTP Request` and set the `Use KeepAlive`.
 Then adjust the `Think Time` as required.
 
 Right click on `Thread Group` and select `Validate`.
+
+To view results and server responses select `View Results Tree`.
+
+### Summary Report
+
+`Thread Group / Add / Listener / Summary Report `
 
 ### Send Parallel requests
 
@@ -267,6 +291,34 @@ Then go to `"View Results by Table"`.  Select Play.
 
 Notice 10 requests sent at once.
 
+## cURL
+
+```bash
+#generate a random cookie string
+curl 127.0.0.1:8080 --cookie "CUSTOMER_COOKIE=$(openssl rand -hex 4)"
+
+#get all DockerHub images from a company
+curl -s "https://hub.docker.com/v2/repositories/someCompany/?page_size=100" | jq -r '.results|.[]|.name'
+
+#Watch redirects
+curl -v -L ${TARGET_URL_AND_PATH} 2>&1 | egrep "^> (Host:|GET)"
+
+#loop requests with cURL
+for i in {1..10}; do curl -s -k https://httpbin.org/ip; done | grep origin
+
+#post wit Bearer Token ( zero cookies )
+curl -X POST \
+    -H "Content-Type: application/json" \
+    -H $'Accept: application/json' \
+    -H $'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15);' \
+    -H $'Accept-Language: en' \
+    -H ${BEARER} \
+    -H $'Connection: close' \
+    --data-binary $'{\"foo\":\"json\"}' \
+    ${TARGET_URL_AND_PATH}
+
+```
+
 ## Apache Bench
 
 ### load test a container
@@ -284,16 +336,28 @@ Notice 10 requests sent at once.
 
 
 #GET with Header
-ab -n 100 -c 10 -H "Accept-Encoding: gzip, deflate" -rk https://0.0.0.0:4000/
+ab -n 100 -c 10 -H "Accept-Encoding: gzip, deflate" -rk ${TARGET_URL_AND_PATH}
 
 #POST locally
-ab -n 100 -c 10 -p data.json -rk https://0.0.0.0:4000/
+ab -n 100 -c 10 -p data.json -rk ${TARGET_URL_AND_PATH}
 
 #POST with 5 second timeout ( default is 30 seconds )
-ab -n 1 -c 1 -s 5 -p payload.json -T application/json -rk https://httpbin.org/post
+ab -n 1 -c 1 -s 5 -p payload.json -T application/json -rk ${TARGET_URL_AND_PATH}
+
+#Write AB results to file. Count successful requests
+ab -n 1000 -c 10 -C 'Cookie: foobar=1' -v 2 -r ${TARGET_URL_AND_PATH} > results.txt 2>&1
+cat results.txt| grep -c "200 OK"
 
 #POST proxy request ( as env variable does not work)
-ab -n 1 -c 1 -p payload.json -T application/json -rk -X 127.0.0.1:8081 https://httpbin.org/post
+ab -n 1 -c 1 -p payload.json -T application/json -rk -X 127.0.0.1:8081 ${TARGET_URL_AND_PATH}
+
+#GET request with Cookies and debug via a Proxy
+ab \
+	-n 3 \
+    -c 2 \
+ 	-C 'Cookie: foo=123;bar=345' \
+    -rk -X 127.0.0.1:8081 \
+    ${TARGET_URL_AND_PATH}
 
 ```
 
@@ -327,6 +391,8 @@ ab \
 brew install haproxy
 brew info haproxy
 haproxy -v
+brew deps --tree haproxy
+brew options haproxy
 ```
 
 ### Run
@@ -334,6 +400,7 @@ haproxy -v
 ```bash
 brew services start haproxy
 brew services stop haproxy
+
 
 # verbose
 sudo haproxy -f haproxy.cfg -V
@@ -405,29 +472,31 @@ User-Agent: curl/7.47.0
 User-Agent: foo
 ```
 
-## cURL
+#### More HAProxy commands
 
 ```bash
-#generate a random cookie string
-curl 127.0.0.1:8080 --cookie "CUSTOMER_COOKIE=$(openssl rand -hex 4)"
 
-#get all DockerHub images from a company
-curl -s "https://hub.docker.com/v2/repositories/someCompany/?page_size=100" | jq -r '.results|.[]|.name'
+# pointless set header to existing header
+http-request set-header User-Agent %[req.fhdr(User-Agent)]
 
+# set user-agent to deadbeef
+http-request set-header User-Agent deadbeef
 
-#loop requests with cURL
-for i in {1..10}; do curl -s -k https://httpbin.org/ip; done | grep origin
+### Add the IP address of HAProxy
+option forwardfor
 
-#post wit Bearer Token ( zero cookies )
-curl -X POST \
-    -H "Content-Type: application/json" \
-    -H $'Accept: application/json' \
-    -H $'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15);' \
-    -H $'Accept-Language: en' \
-    -H ${BEARER} \
-    -H $'Connection: close' \
-    --data-binary $'{\"foo\":\"json\"}' \
-    ${TARGET_URL_AND_PATH}
+# Random number header
+http-request add-header X-Random rand(1:100),mul(2),sub(5),add(3),div(2)
 
+# Device info (option is only available when haproxy has been compiled with USE_51DEGREES)
+http-request set-header X-DeviceInfo %[51d.all(DeviceType,IsMobile,IsTablet)]
+#Please note that this 
+```
+
+#### Debug HAProxy
+
+```bash
+# Echo back request. Includes HTTP Headers
+docker run -p 8080:8080 --rm -t mendhak/http-https-echo:21
 ```
 
