@@ -157,11 +157,11 @@ grep --include=\*.burp -rnw . -e "hotel"
 
 You can do this with Intruder ( not Repeater, as you might expect ).  
 
- - Send request to `Intruder`
- - In `Positions` tab, `Clear §`
- - In `Payloads` tab, select:
-    - `Payload Type: Null Payment`
-    -  Select number of requests to replay
+- Send request to `Intruder`
+- In `Positions` tab, `Clear §`
+- In `Payloads` tab, select:
+  - `Payload Type: Null Payment`
+  - Select number of requests to replay
 
 ### Replay requests (turbo)
 
@@ -190,27 +190,26 @@ Host: foobar.com
 
 #### Burp Intruder - Username Generator
 
- - Send request to `Intruder`
- - In `Positions` tab, select `Clear §`
- - Then select `Add §` after highlighting `"foo.bar@foobar.com"`
- - In `Payloads` tab, select:
-    - `Payload Type: Username Generator`
-    - `Payload Options [Username Generator]` add base target email `foo_bar@foobar.com`
-    - `Payload Encoding` de-select the `URL encode` box
- - In `Options` tab, select:
-    - de-select _"make unmodified baseline request"_
-    - In `Attack Results` specify whether to save requests and responses
-    - In `grep match` add the line `"registered":true` [ to ensure it is simple to view a successful attack ]
+- Send request to `Intruder`
+- In `Positions` tab, select `Clear §`
+- Then select `Add §` after highlighting `"foo.bar@foobar.com"`
+- In `Payloads` tab, select:
+  - `Payload Type: Username Generator`
+  - `Payload Options [Username Generator]` add base target email `foo_bar@foobar.com`
+  - `Payload Encoding` de-select the `URL encode` box
+- In `Options` tab, select:
+  - de-select _"make unmodified baseline request"_
+  - In `Attack Results` specify whether to save requests and responses
+  - In `grep match` add the line `"registered":true` [ to ensure it is simple to view a successful attack ]
 
 #### Burp Intruder - Brute Forcer
 
- - < same as above steps>
- - In `Payloads` tab, select:
-  - `Payload Type: Brute Forcer`
-    - Select the `Character Set`
-    - Select the `min length` and `max length`
+- < same as above steps>
+- In `Payloads` tab, select:
+- `Payload Type: Brute Forcer`
+  - Select the `Character Set`
+  - Select the `min length` and `max length`
   
-
 > You can slow the enumeration attempt to avoid `Rate Limits` by adding a custom `Resource Pool` inside of `Intruder`.  You can delay the time between requests.
 
 ### Inject XSS Payload
@@ -230,15 +229,15 @@ From `Extender` select `BApp Store`. Install `xssValidator`.
 
 #### Burp Intruder set up
 
- - Send request to `Intruder`
- - In `Positions` tab, select `Clear §`
- - Then select `Add §` after highlighting `"125 important place"`
- - In `Payloads` tab, select:
-    - `Payload Type: Extension-generated`
-    - `Payload Options [Extension-generated]` select `XSS Validator Payloads`
- - In `Options` tab, select:
-    - de-select _"make unmodified baseline request"_
-    - `Grep – Match section`, and enter the string expected.
+- Send request to `Intruder`
+- In `Positions` tab, select `Clear §`
+- Then select `Add §` after highlighting `"125 important place"`
+- In `Payloads` tab, select:
+  - `Payload Type: Extension-generated`
+  - `Payload Options [Extension-generated]` select `XSS Validator Payloads`
+- In `Options` tab, select:
+  - de-select _"make unmodified baseline request"_
+  - `Grep – Match section`, and enter the string expected.
 
 ## JMeter
 
@@ -272,7 +271,7 @@ To view results and server responses select `View Results Tree`.
 
 ### Summary Report
 
-`Thread Group / Add / Listener / Summary Report `
+`Thread Group / Add / Listener / Summary Report`
 
 ### Send Parallel requests
 
@@ -297,8 +296,20 @@ Notice 10 requests sent at once.
 #generate a random cookie string
 curl 127.0.0.1:8080 --cookie "CUSTOMER_COOKIE=$(openssl rand -hex 4)"
 
+#include env variables ( double quoted )
+curl ${H1_HOSTNAME} -H 'User-Agent: '"${H1_FUZZ_UG}"'' \ 
+
 #get all DockerHub images from a company
 curl -s "https://hub.docker.com/v2/repositories/someCompany/?page_size=100" | jq -r '.results|.[]|.name'
+
+#Silent
+curl -s 'http://example.com' > /dev/null
+
+# Trace / debug
+curl --trace-ascii - https://example.com
+
+#Silent but http code
+curl --write-out '%{http_code}' --silent --output /dev/null http://example.com
 
 #Watch redirects
 curl -v -L ${TARGET_URL_AND_PATH} 2>&1 | egrep "^> (Host:|GET)"
@@ -317,6 +328,15 @@ curl -X POST \
     --data-binary $'{\"foo\":\"json\"}' \
     ${TARGET_URL_AND_PATH}
 
+#Provoke a Block
+export H1_HOSTNAME="https://www.hackerone.com" && \
+export H1_FUZZ_UG="Fuzz Faster U Fool v1.3.1-dev" && \
+curl -I ${H1_HOSTNAME} \
+     -H 'X-Requested-With: XMLHttpRequest' \
+     -H 'Accept: application/json' \
+     -H 'Connection: keep-alive' \
+     -H 'User-Agent: '"${H1_FUZZ_UG}"'' \
+     -H 'Accept-Encoding: gzip'
 ```
 
 ## Apache Bench
@@ -346,6 +366,7 @@ ab -n 1 -c 1 -s 5 -p payload.json -T application/json -rk ${TARGET_URL_AND_PATH}
 
 #Write AB results to file. Count successful requests
 ab -n 1000 -c 10 -C 'Cookie: foobar=1' -v 2 -r ${TARGET_URL_AND_PATH} > results.txt 2>&1
+cat results.txt| grep "HTTP/"
 cat results.txt| grep -c "200 OK"
 
 #POST proxy request ( as env variable does not work)
@@ -499,4 +520,3 @@ http-request set-header X-DeviceInfo %[51d.all(DeviceType,IsMobile,IsTablet)]
 # Echo back request. Includes HTTP Headers
 docker run -p 8080:8080 --rm -t mendhak/http-https-echo:21
 ```
-
