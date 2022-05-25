@@ -29,6 +29,7 @@
     - [Example Proxy Pass all data](#example-proxy-pass-all-data)
     - [Example remove Cookies and add header](#example-remove-cookies-and-add-header)
     - [Replace user-agent](#replace-user-agent)
+- [DNS](#dns)
 
 <!-- /TOC -->
 
@@ -308,6 +309,9 @@ curl -s 'http://example.com' > /dev/null
 # Trace / debug
 curl --trace-ascii - https://example.com
 
+# Get from GitHub
+curl -LJO https://github.com/foo/bar/v0.2.1
+
 #Silent but http code
 curl --write-out '%{http_code}' --silent --output /dev/null http://example.com
 
@@ -316,6 +320,14 @@ curl -v -L ${TARGET_URL_AND_PATH} 2>&1 | egrep "^> (Host:|GET)"
 
 #loop requests with cURL
 for i in {1..10}; do curl -s -k https://httpbin.org/ip; done | grep origin
+
+#POST to a Slack Webhook
+curl -X POST -H 'Content-type: application/json' --data '{"text":"Hello, World!"}' ${SLACK_URL}
+
+#POST to a Slack Webhook with a json file
+curl -X POST \
+        -H 'Content-type: application/json' \
+        -d @payload_simple.json  $SLACK_URL
 
 #post wit Bearer Token ( zero cookies )
 curl -X POST \
@@ -514,9 +526,19 @@ http-request set-header X-DeviceInfo %[51d.all(DeviceType,IsMobile,IsTablet)]
 #Please note that this 
 ```
 
-#### Debug HAProxy
+#### Local Echo Server
 
 ```bash
 # Echo back request. Includes HTTP Headers
 docker run -p 8080:8080 --rm -t mendhak/http-https-echo:21
+```
+
+## DNS
+
+```shell
+# read local DNS entries. Can be removed on macos in /etc/resolver
+scutil --dns
+
+# get the txt records in tidy format
+dig txt foobar.com +short
 ```
