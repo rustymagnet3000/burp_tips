@@ -1,7 +1,13 @@
-# Burp, JMeter, AB, HAProxy, cURL tips
+# DNS, Vulnerabilities, Burp, JMeter, AB, HAProxy, cURL tips
 
 <!-- TOC depthfrom:2 depthto:3 withlinks:true updateonsave:true orderedlist:false -->
 
+- [Reconnaissance](#reconnaissance)
+    - [Exposed passwords](#exposed-passwords)
+    - [Domain / Port issues](#domain--port-issues)
+    - [Domain names](#domain-names)
+    - [fast scanning on large number of hosts](#fast-scanning-on-large-number-of-hosts)
+    - [Print Server's Certificate Chain](#print-servers-certificate-chain)
 - [Proxy traffic](#proxy-traffic)
     - [macOS env variable](#macos-env-variable)
     - [Jetbrains IDE](#jetbrains-ide)
@@ -30,8 +36,39 @@
     - [Example remove Cookies and add header](#example-remove-cookies-and-add-header)
     - [Replace user-agent](#replace-user-agent)
 - [DNS](#dns)
+- [Vulnerabilities](#vulnerabilities)
+    - [Loose Cookie attributes](#loose-cookie-attributes)
+    - [Subdomain Takeovers](#subdomain-takeovers)
+    - [XSS Payloads - Stored XSS](#xss-payloads---stored-xss)
+    - [Use encoded colon XSS Payloads](#use-encoded-colon-xss-payloads)
+    - [Phishing](#phishing)
+    - [Billion Laughs Attack](#billion-laughs-attack)
 
 <!-- /TOC -->
+
+## Reconnaissance
+
+### Exposed passwords
+
+<https://intelx.io/>
+
+### Domain / Port issues
+
+<https://spyse.com/>
+
+### Domain names
+
+Interesting way to see whether a company has bought some TLDs or domains you didn't expect.  <https://rapidapi.com/domainr/>.
+
+[Documentation](https://domainr.com/docs/api)
+
+### fast scanning on large number of hosts
+
+<https://github.com/projectdiscovery/nuclei>
+
+### Print Server's Certificate Chain
+
+`echo | openssl s_client -showcerts -connect foobar.com :443 2>/dev/null | openssl x509 -inform pem -noout -text`
 
 ## Proxy traffic
 
@@ -60,7 +97,7 @@ export https_proxy=127.0.0.1:8081
 
 ### macOS Desktop apps
 
-With Safari or Slack, you have to change the macOS Network Proxy settings.
+With Safari or Slack, you have to change the macOS `Network Proxy` settings.
 
 ### Proxy OpenSSL
 
@@ -541,4 +578,231 @@ scutil --dns
 
 # get the txt records in tidy format
 dig txt foobar.com +short
+
+# DNS provider
+dig foobar.com  -t ns  +short
+mona.ns.cloudflare.com.
+phil.ns.cloudflare.com.
+
+# Name server
+host -t ns foobar.com     
+foobar.com name server mona.ns.cloudflare.com.
+foobar.com name server phil.ns.cloudflare.com
+
+# Name server
+nslookup foobar.com  
+
+# nslookup interactive interface
+▶ nslookup
+
+#Name server               
+> set type=ns
+> foobar.com
+
+# Email
+> set type=mx
+> foobar.com 
+
+# Email
+> set type=CNAME
+> foobar.com
+
+# Pull most info
+dig @8.8.8.8  foobar.com -t ANY`
+
+# Identify the I.P. addresses
+dig @8.8.8.8  foobar.com +short      
+172.67.137.244
+104.21.78.229
+
+### Whois
+whois foobar.com
+
+Domain Name: foobar.com
+Creation Date: 2018-XX-XX
+Registry Expiry Date: 2024-XX-XX
+Registrar: BadHostProvider
+Registrant Organization: foobar LLC
+
 ```
+
+## Vulnerabilities
+
+### Loose Cookie attributes
+
+When a customer logs into a website, they are given a Cookie - either a `Session Cookie` or a `Persistant Cookie` [ with an expiry time ].  As [OWASP](https://owasp.org/www-community/HttpOnly) state, These cookies have value:
+
+>the majority of XSS attacks target theft of session cookies
+
+If a person selects "Web Developer tools" and `Console` from Firefox or Chrome they can dump cookies via the API `document.cookie`.  This is a "getter" for all Cookies that do NOT have the `HttpOnly` flag set.
+
+#### Mitigation
+
+There can be reasons a `session cookie` may not be protected correctly.  It can be mitigated by setting the `HttpOnly` and `Secure flag` on important cookies.  Ideally, you don't want them accessible on the client and you don't want them sent over HTTP-only.
+
+### Subdomain Takeovers
+
+What happened?  The person may have found a dangling CNAME that points to a site that hosts no content.
+
+You can get off the shelf scripts to find these dangling CNAMEs:
+
+<https://github.com/mandatoryprogrammer/cloudflare_enum>
+
+A great article on the topic from [Mozilla](https://developer.mozilla.org/en-US/docs/Web/Security/Subdomain_takeovers)
+
+> Suppose you control the domain example.com. You want to add a blog at blog.example.com, and you decide to use a hosting provider who maintains a blogging platform. The process you go through might look like this:
+1.You register the name "blog.example.com" with a domain registrar.
+2.You set up DNS records to direct browsers that want to access blog.example.com so that they go to the virtual host.
+3.You create a virtual host at the hosting provider.
+
+I like the analogy they give:
+
+> A subdomain is like an electrical outlet. If you remove your appliance from the outlet (or haven’t plugged one in yet), someone can plug in a different one. You must cut power at the breaker or fuse box (DNS) to prevent the outlet from being used by someone else.
+
+### XSS Payloads - Stored XSS
+
+Trying to inject malicious tags into a database using different payloads:
+
+#### Mitigation
+
+1. A Web Application Firewall could screen for the latest OWASP XSS Payloads.
+
+2. Application libraries that would strip out harmful tags.  For example, with Ruby on Rails, you could use the [SanitizeHelper](https://api.rubyonrails.org/classes/ActionView/Helpers/SanitizeHelper.html) Module:
+
+>The SanitizeHelper module provides a set of methods for scrubbing text of undesired HTML elements.
+
+3. The page at risk of an XSS payload may not be __Internet facing__.
+
+4. The page at risk may require additional privileges to access.
+
+#### Simple XSS Payloads
+
+```html
+YYY<script>alert('Hello');</script>ZZZ 
+"><script>alert('Hello')</script> 
+<object data=javascript:alert(3)>
+<svg><animate onbegin=alert() attributeName=x></svg>
+<p style="animation: x;" onanimationstart="alert()">XSS</p>
+<svg/onload=alert(1)><svg>
+YYYYY<marquee onstart=alert(1)>ZZZZZ
+```
+
+### Use encoded colon XSS Payloads
+
+```html
+//<form/action=javascript&#x3A;alert&lpar;document&period;cookie&rpar;><input/type='submit'>//
+</font>/<svg><style>{src&#x3A;'<style/onload=this.onload=confirm(1)>'</font>/</style>
+YYYYY<a aa aaa aaaa aaaaa aaaaaa aaaaaaa aaaaaaaa aaaaaaaaa aaaaaaaaaa href=j&#97v&#97script:&#97lert(1)>ZZZZZ
+</font>/<svg><style>{src&#x3A;'<style/onload=this.onload=confirm(1)>'</font>/</style>
+<IMG SRC=&#x6A&#x61&#x76&#x61&#x73&#x63&#x72&#x69&#x70&#x74&#x3A&#x61&#x6C&#x65&#x72&#x74&#x28&#x27&#x58&#x53&#x53&#x27&#x29>
+```
+
+### Phishing
+
+A sophisicated phishing attempts will often:
+
+- Set up a web site with the hostname close to the target hostname.
+- Use the same stylesheets and graphics as the target.  This is all public information.
+- Create a `certificate chain` to ensure the site uses `https` and appear secure.
+
+If the attacker has more time, skill and resource, he/she may mimic the old site, in terms of server side language.  For example, using `php` in a site against a company that never writes `php` is a major clue.
+
+#### Mitigation
+
+1. Check the [certificate transparency logs](https://crt.sh) to see who has registered a domain close your own domain name.  For example, `https://crt.sh/?CN=rustymagnet%25&match=ILIKE`.
+
+2. Go to the `Registrar` or the `hosting company` ( often the same company ) and ask for it to be taken offline.  This process can take forever, as there may be many cases in progress.  
+
+3. Call for a [UDRP](https://en.wikipedia.org/wiki/Uniform_Domain-Name_Dispute-Resolution_Policy) if the content of the website is the same content.
+
+4. Check `whois badsite.com`.
+
+```text
+Domain name: badsite.com
+Creation Date: 2021-06-03
+Registrar: NAMECHEAP INC
+Registrar Abuse Contact Email: abuse@namecheap.com
+Registrant Name: Withheld for Privacy Purposes
+Registrant Organization: Privacy service provided by Withheld for Privacy ehf
+Registrant Street: street 22
+Registrant City: some city
+Registrant State/Province: Capital Region
+Registrant Postal Code: some zip code
+Registrant Country: US
+Registrant Phone: some phone number
+```
+
+5. Check the leaf certificate of the supicious site for `Subject Alt Names`.  This - like the `certificate transparency logs` give visibility into other potential hostnames from the same attacker that could appear in the near future.
+
+6. User education and comms.
+
+### Billion Laughs Attack
+
+#### Background
+
+A type of `Denial of Service` attack on a server.  A malicious payload could cause XML parsing code to choke, unless it was handled.  
+
+This attack is useful, even if it does not disrupt the server.  The attack can still `disclose information` about a target application.  For example, if you send the malicious payload into a Ruby application, it will throw an `exception`.  Depending on how the server is setup, this could return a `stack trace`:
+
+Based on the output:
+
+```html
+<h1>
+ RuntimeError
+</h1>
+<pre>entity expansion has grown too large</pre>
+```
+
+The stack trace may look intimidating.  However, if you look at a `Ruby` stack trace it is split into three sections:
+
+```ruby
+Application-Trace
+Framework-Trace
+Full-Trace
+```
+
+Based on where the `Framework-Trace` stopped, you can see the `exception` is raised from `rexml/text.rb` You can even find the code that raised the `exception` [here](https://github.com/ruby/rexml/blob/master/lib/rexml/text.rb).
+
+If you get a `stack trace`, it could reveal details on the application version, libraries used and internal details.
+
+#### Simulating the attack
+
+This can even happen when a request to a server had a different content type. For example:
+
+The original request header:
+
+| Request      | content-type |
+| ----------- | ----------- |
+| Original      | application/json; charset=utf-8       |
+| Modified   | text/xml        |
+
+Not all parsing libraries are equal.  
+
+Python has some libraries that vulnerable to the `Billion Laughs Attack`.  Vulnerable libraries [here](https://docs.python.org/3/library/xml.html#xml-vulnerabilities).
+
+#### Sample code
+
+```python
+import xml.etree.ElementTree as ET
+
+if __name__ == '__main__':
+    root = ET.parse('harmless.xml').getroot()
+    print(root)
+
+    for elem in root:
+        print('{0}'.format(elem.attrib['name']))
+        for e in elem:
+            print('\t\t{0}\t{1}'.format(e.tag, e.text))
+```
+
+This code times out, when you point it to the `malicious_payload.xml`, as it gets caught by `xml.etree.ElementTree`.
+
+#### Mitigations
+
+- Turn off entity expansion.
+- Limit the number of Entity Reference Nodes that the parser can expand.
+- Limit the number of characters entities can expand to.
+
+[Ruby](https://github.com/ruby/rexml/blob/master/lib/rexml/text.rb)
+
+[General](https://cytinus.wordpress.com/2011/07/26/37/#:~:text=Explanation%3A,an%20entity%20can%20expand%20to.&text=The%20Entity%20Expansion%20Limit%20does%20not%20protect%20against%20external%20entity%20attacks.)
