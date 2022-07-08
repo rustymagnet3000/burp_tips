@@ -15,6 +15,9 @@
     - [Proxy OpenSSL](#proxy-openssl)
     - [Invisble proxying](#invisble-proxying)
     - [Add debug logging, as alternative to proxying](#add-debug-logging-as-alternative-to-proxying)
+- [Bash](#bash)
+    - [Cool trick in Container with no Vi / nano](#cool-trick-in-container-with-no-vi--nano)
+    - [Operators](#operators)
 - [Burp](#burp)
     - [Search Burp files](#search-burp-files)
     - [Replay requests](#replay-requests)
@@ -175,6 +178,25 @@ Some AWS libraries can be debugged by setting an environment variable to print n
 Or:
 
 `RUST_LOG=rusoto,hyper=debug`
+
+## Bash
+
+### Cool trick in Container with no Vi / nano
+
+Get from Paste into script `cat > myscript.sh`
+
+### Operators
+
+```bash
+# run A then B, regardless of A's success
+"A ; B"   
+# run B if A succeeded
+"A && B"  
+# run B if A failed
+"A || B"
+# run A in background
+"A &" 
+```
 
 ## Burp
 
