@@ -380,15 +380,22 @@ curl -v -L ${TARGET_URL_AND_PATH} 2>&1 | egrep "^> (Host:|GET)"
 #loop requests with cURL
 for i in {1..10}; do curl -s -k https://httpbin.org/ip; done | grep origin
 
-#POST to a Slack Webhook
+
+for i in {1..25}; do curl -I https://${HOSTNAME}; done | grep HTTP\n
+
+
+# POST to a Slack Webhook
 curl -X POST -H 'Content-type: application/json' --data '{"text":"Hello, World!"}' ${SLACK_URL}
 
-#POST to a Slack Webhook with a json file
+# GET with a custom Host header
+curl -H "Host: ${HOSTNAME}" https://${HOSTNAME}
+
+# POST to a Slack Webhook with a json file
 curl -X POST \
         -H 'Content-type: application/json' \
         -d @payload_simple.json  $SLACK_URL
 
-#post wit Bearer Token ( zero cookies )
+# POST wit Bearer Token ( zero cookies )
 curl -X POST \
     -H "Content-Type: application/json" \
     -H $'Accept: application/json' \
