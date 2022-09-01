@@ -79,7 +79,7 @@ Interesting way to see whether a company has bought some TLDs or domains you did
 
 ### macOS env variable
 
-on `macOS`, it is simpler to proxy command line apps - such as Rust, Python, C - using an environment variable:
+on `macOS`, it is simpler to proxy command line apps - such as Homebrew, Rust, Python, C - using an environment variable:
 
 ```bash
 export https_proxy=127.0.0.1:8081
@@ -665,6 +665,9 @@ brew search tree
 # install Tree
 brew install tree
 
+# avoid installing macOS tools by visiting websites
+brew install burp-suite --cask
+
 # Stop brew trying to update with every package install
 export HOMEBREW_NO_AUTO_UPDATE=1
 
@@ -673,6 +676,7 @@ brew search foo/tools
 
 # list taps installed
 brew tap
+brew tap heroku/brew
 
 # remove a Tap
 brew untap foo/tools
