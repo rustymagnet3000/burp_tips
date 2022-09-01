@@ -1,4 +1,4 @@
-# DNS, Vulnerabilities, Burp, JMeter, AB, HAProxy, cURL tips
+# DNS, Vulnerabilities, Burp, JMeter, AB, HAProxy, cURL, brew tips
 
 <!-- TOC depthfrom:2 depthto:3 withlinks:true updateonsave:true orderedlist:false -->
 
@@ -15,6 +15,9 @@
     - [Proxy OpenSSL](#proxy-openssl)
     - [Invisble proxying](#invisble-proxying)
     - [Add debug logging, as alternative to proxying](#add-debug-logging-as-alternative-to-proxying)
+- [Bash](#bash)
+    - [Cool trick in Container with no Vi / nano](#cool-trick-in-container-with-no-vi--nano)
+    - [Operators](#operators)
 - [Burp](#burp)
     - [Search Burp files](#search-burp-files)
     - [Replay requests](#replay-requests)
@@ -36,6 +39,8 @@
     - [Example remove Cookies and add header](#example-remove-cookies-and-add-header)
     - [Replace user-agent](#replace-user-agent)
 - [DNS](#dns)
+- [Homebrew](#homebrew)
+    - [Brew](#brew)
 - [Vulnerabilities](#vulnerabilities)
     - [Loose Cookie attributes](#loose-cookie-attributes)
     - [Subdomain Takeovers](#subdomain-takeovers)
@@ -74,7 +79,7 @@ Interesting way to see whether a company has bought some TLDs or domains you did
 
 ### macOS env variable
 
-on `macOS`, it is simpler to proxy command line apps - such as Rust, Python, C - using an environment variable:
+on `macOS`, it is simpler to proxy command line apps - such as Homebrew, Rust, Python, C - using an environment variable:
 
 ```bash
 export https_proxy=127.0.0.1:8081
@@ -175,6 +180,25 @@ Some AWS libraries can be debugged by setting an environment variable to print n
 Or:
 
 `RUST_LOG=rusoto,hyper=debug`
+
+## Bash
+
+### Cool trick in Container with no Vi / nano
+
+Get from Paste into script `cat > myscript.sh`
+
+### Operators
+
+```bash
+# run A then B, regardless of A's success
+"A ; B"   
+# run B if A succeeded
+"A && B"  
+# run B if A failed
+"A || B"
+# run A in background
+"A &" 
+```
 
 ## Burp
 
@@ -357,16 +381,20 @@ curl -v -L ${TARGET_URL_AND_PATH} 2>&1 | egrep "^> (Host:|GET)"
 
 #loop requests with cURL
 for i in {1..10}; do curl -s -k https://httpbin.org/ip; done | grep origin
+for i in {1..25}; do curl -I https://${HOSTNAME}; done | grep HTTP\n
 
-#POST to a Slack Webhook
+# POST to a Slack Webhook
 curl -X POST -H 'Content-type: application/json' --data '{"text":"Hello, World!"}' ${SLACK_URL}
 
-#POST to a Slack Webhook with a json file
+# GET with a custom Host header
+curl -H "Host: ${HOSTNAME}" https://${HOSTNAME}
+
+# POST to a Slack Webhook with a json file
 curl -X POST \
         -H 'Content-type: application/json' \
         -d @payload_simple.json  $SLACK_URL
 
-#post wit Bearer Token ( zero cookies )
+# POST wit Bearer Token ( zero cookies )
 curl -X POST \
     -H "Content-Type: application/json" \
     -H $'Accept: application/json' \
@@ -623,6 +651,52 @@ Creation Date: 2018-XX-XX
 Registry Expiry Date: 2024-XX-XX
 Registrar: BadHostProvider
 Registrant Organization: foobar LLC
+
+```
+
+## Homebrew
+
+### Brew
+
+```shell
+# Search for packages
+brew search tree
+
+# install Tree
+brew install tree
+
+# avoid installing macOS tools by visiting websites
+brew install burp-suite --cask
+
+# Stop brew trying to update with every package install
+export HOMEBREW_NO_AUTO_UPDATE=1
+
+# Check which tools inside a Tap are installed
+brew search foo/tools
+
+# list taps installed
+brew tap
+brew tap heroku/brew
+
+# remove a Tap
+brew untap foo/tools
+
+# install Tap
+brew tap foo/tools git@github.com:foo/tools.git
+
+# install Package from a Tap ( inside a Private Github repo )
+brew install foo/tools/some-cli
+brew install --interactive foo/tools/some-cli
+
+# uninstall Package inside a Tap
+brew uninstall some-cli
+
+# Verify that things are working ( this will provoke any HTTP404 or Token issues ) 
+brew audit --tap=foo/tools --except=version
+brew audit foo/tools/some-cli --online --git --skip-style -d
+
+# Edit a formula locally
+brew edit foo/tools/some-cli
 
 ```
 
