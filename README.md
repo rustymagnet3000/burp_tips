@@ -1,4 +1,4 @@
-# DNS, Vulnerabilities, Burp, JMeter, AB, HAProxy, cURL tips
+# DNS, Vulnerabilities, Burp, JMeter, AB, HAProxy, cURL, brew tips
 
 <!-- TOC depthfrom:2 depthto:3 withlinks:true updateonsave:true orderedlist:false -->
 
@@ -39,6 +39,8 @@
     - [Example remove Cookies and add header](#example-remove-cookies-and-add-header)
     - [Replace user-agent](#replace-user-agent)
 - [DNS](#dns)
+- [Homebrew](#homebrew)
+    - [Brew](#brew)
 - [Vulnerabilities](#vulnerabilities)
     - [Loose Cookie attributes](#loose-cookie-attributes)
     - [Subdomain Takeovers](#subdomain-takeovers)
@@ -379,10 +381,7 @@ curl -v -L ${TARGET_URL_AND_PATH} 2>&1 | egrep "^> (Host:|GET)"
 
 #loop requests with cURL
 for i in {1..10}; do curl -s -k https://httpbin.org/ip; done | grep origin
-
-
 for i in {1..25}; do curl -I https://${HOSTNAME}; done | grep HTTP\n
-
 
 # POST to a Slack Webhook
 curl -X POST -H 'Content-type: application/json' --data '{"text":"Hello, World!"}' ${SLACK_URL}
@@ -652,6 +651,48 @@ Creation Date: 2018-XX-XX
 Registry Expiry Date: 2024-XX-XX
 Registrar: BadHostProvider
 Registrant Organization: foobar LLC
+
+```
+
+## Homebrew
+
+### Brew
+
+```shell
+# Search for packages
+brew search tree
+
+# install Tree
+brew install tree
+
+# Stop brew trying to update with every package install
+export HOMEBREW_NO_AUTO_UPDATE=1
+
+# Check which tools inside a Tap are installed
+brew search foo/tools
+
+# list taps installed
+brew tap
+
+# remove a Tap
+brew untap foo/tools
+
+# install Tap
+brew tap foo/tools git@github.com:foo/tools.git
+
+# install Package from a Tap ( inside a Private Github repo )
+brew install foo/tools/some-cli
+brew install --interactive foo/tools/some-cli
+
+# uninstall Package inside a Tap
+brew uninstall some-cli
+
+# Verify that things are working ( this will provoke any HTTP404 or Token issues ) 
+brew audit --tap=foo/tools --except=version
+brew audit foo/tools/some-cli --online --git --skip-style -d
+
+# Edit a formula locally
+brew edit foo/tools/some-cli
 
 ```
 
