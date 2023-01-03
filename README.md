@@ -42,6 +42,7 @@
 - [Homebrew](#homebrew)
     - [Brew](#brew)
 - [Vulnerabilities](#vulnerabilities)
+    - [Bug Bounty reports](#bug-bounty-reports)
     - [Loose Cookie attributes](#loose-cookie-attributes)
     - [Subdomain Takeovers](#subdomain-takeovers)
     - [XSS Payloads - Stored XSS](#xss-payloads---stored-xss)
@@ -701,6 +702,19 @@ brew edit foo/tools/some-cli
 ```
 
 ## Vulnerabilities
+
+### Bug Bounty reports
+
+Bug Bounty reports don't tell to yield the most complex bugs. But you will see:
+
+- Subdomain takeovers
+- API keys, tokens inside of apps or in web sites
+- Public access to Docker hub images, GitHub repos that should be private
+- Misconfigured third party software ( Jira, ServiceNow )
+- Public access to debug logs, profilers,crash logs
+- Leaked employee credentials
+- Third party account takeovers ( instagram, twitter )
+- Firewall config issues
 
 ### Loose Cookie attributes
 
