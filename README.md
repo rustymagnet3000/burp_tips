@@ -18,6 +18,7 @@
 - [Bash](#bash)
     - [Cool trick in Container with no Vi / nano](#cool-trick-in-container-with-no-vi--nano)
     - [Operators](#operators)
+    - [Careful check for empty strings](#careful-check-for-empty-strings)
 - [Burp](#burp)
     - [Search Burp files](#search-burp-files)
     - [Replay requests](#replay-requests)
@@ -201,6 +202,21 @@ Get from Paste into script `cat > myscript.sh`
 "A &" 
 ```
 
+### Careful check for empty strings
+
+```bash
+test -n "yest" ; echo $?
+0
+test -n "" ; echo $?    
+1
+test -n  ; echo $?  
+0
+test -n $CIRCLE_PULL_REQUEST ; echo $?
+0
+test -n "$CIRCLE_PULL_REQUEST" ; echo $?
+1
+```
+
 ## Burp
 
 ### Search Burp files
@@ -365,11 +381,19 @@ curl ${H1_HOSTNAME} -H 'User-Agent: '"${H1_FUZZ_UG}"'' \
 #get all DockerHub images from a company
 curl -s "https://hub.docker.com/v2/repositories/someCompany/?page_size=100" | jq -r '.results|.[]|.name'
 
+
+# no Cache header
+curl -H 'Cache-Control: no-cache, no-store' http://www.example.com
+
 #Silent
 curl -s 'http://example.com' > /dev/null
 
 # Trace / debug
 curl --trace-ascii - https://example.com
+
+# Perpetual Healthcheck in Docker Image like https://hub.docker.com/r/curlimages/curl
+HEALTHCHECK --interval=5m --timeout=3s \
+  CMD curl -f http://localhost/ || exit 1
 
 # Get from GitHub
 curl -LJO https://github.com/foo/bar/v0.2.1
