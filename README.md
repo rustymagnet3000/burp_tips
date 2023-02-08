@@ -388,6 +388,18 @@ curl -H 'Cache-Control: no-cache, no-store' http://www.example.com
 #Silent
 curl -s 'http://example.com' > /dev/null
 
+# Test SQL injection
+curl -I http://<http_hostname>:<external_port>/\?id\=%27%20OR%20%271
+
+# Test Cross-site scripting
+curl -I http://<http_hostname>:<external_port>/\?id\=\<script\>alert\(\1\)\</script\>
+
+# Test command injection
+curl -I http://<http_hostname>:<external_port>/\?id\=%3B+%2Fsbin%2Fshutdown
+
+# Test code injection
+curl -I http://<http_hostname>:<external_port>/\?id\=phpinfo\(\)
+
 # Trace / debug
 curl --trace-ascii - https://example.com
 
