@@ -15,10 +15,11 @@
     - [Proxy OpenSSL](#proxy-openssl)
     - [Invisble proxying](#invisble-proxying)
     - [Add debug logging, as alternative to proxying](#add-debug-logging-as-alternative-to-proxying)
-- [Bash](#bash)
-    - [Cool trick in Container with no Vi / nano](#cool-trick-in-container-with-no-vi--nano)
+- [Shell tricks](#shell-tricks)
+    - [Trick in Container with no Vi / nano](#trick-in-container-with-no-vi--nano)
     - [Operators](#operators)
-    - [Careful check for empty strings](#careful-check-for-empty-strings)
+    - [check for empty strings](#check-for-empty-strings)
+    - [diff between files](#diff-between-files)
 - [Burp](#burp)
     - [Search Burp files](#search-burp-files)
     - [Replay requests](#replay-requests)
@@ -183,15 +184,18 @@ Or:
 
 `RUST_LOG=rusoto,hyper=debug`
 
-## Bash
+## Shell tricks
 
-### Cool trick in Container with no Vi / nano
+### Trick in Container with no Vi / nano
 
-Get from Paste into script `cat > myscript.sh`
+```shell
+# get from Paste into script
+cat > myscript.sh
+```
 
 ### Operators
 
-```bash
+```shell
 # run A then B, regardless of A's success
 "A ; B"   
 # run B if A succeeded
@@ -202,9 +206,9 @@ Get from Paste into script `cat > myscript.sh`
 "A &" 
 ```
 
-### Careful check for empty strings
+### check for empty strings
 
-```bash
+```shell
 test -n "yest" ; echo $?
 0
 test -n "" ; echo $?    
@@ -215,6 +219,50 @@ test -n $CIRCLE_PULL_REQUEST ; echo $?
 0
 test -n "$CIRCLE_PULL_REQUEST" ; echo $?
 1
+```
+
+### diff between files
+
+```shell
+cat file1 && echo "\n" && cat file2
+a
+b
+c
+d
+e
+
+
+d
+e
+f
+g
+
+# get lines not that are not in each file
+▶ cat file1 file2 | sort | uniq -u   
+a
+b
+c
+f
+g
+
+#find lines only in file1
+comm -23 file1 file2 
+a
+b
+c
+
+#find lines only in file2
+comm -13 file1 file2 
+f
+g
+
+#find lines in both files
+comm -12 file1 file2 
+d
+e
+
+# cuts from a forward slash
+ - cat file.txt | cut -d "/" -f3-
 ```
 
 ## Burp
