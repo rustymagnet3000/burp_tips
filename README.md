@@ -15,9 +15,11 @@
     - [Proxy OpenSSL](#proxy-openssl)
     - [Invisble proxying](#invisble-proxying)
     - [Add debug logging, as alternative to proxying](#add-debug-logging-as-alternative-to-proxying)
-- [Bash](#bash)
-    - [Cool trick in Container with no Vi / nano](#cool-trick-in-container-with-no-vi--nano)
+- [Shell tricks](#shell-tricks)
+    - [Trick in Container with no Vi / nano](#trick-in-container-with-no-vi--nano)
     - [Operators](#operators)
+    - [check for empty strings](#check-for-empty-strings)
+    - [diff between files](#diff-between-files)
 - [Burp](#burp)
     - [Search Burp files](#search-burp-files)
     - [Replay requests](#replay-requests)
@@ -42,6 +44,7 @@
 - [Homebrew](#homebrew)
     - [Brew](#brew)
 - [Vulnerabilities](#vulnerabilities)
+    - [Bug Bounty reports](#bug-bounty-reports)
     - [Loose Cookie attributes](#loose-cookie-attributes)
     - [Subdomain Takeovers](#subdomain-takeovers)
     - [XSS Payloads - Stored XSS](#xss-payloads---stored-xss)
@@ -181,15 +184,18 @@ Or:
 
 `RUST_LOG=rusoto,hyper=debug`
 
-## Bash
+## Shell tricks
 
-### Cool trick in Container with no Vi / nano
+### Trick in Container with no Vi / nano
 
-Get from Paste into script `cat > myscript.sh`
+```shell
+# get from Paste into script
+cat > myscript.sh
+```
 
 ### Operators
 
-```bash
+```shell
 # run A then B, regardless of A's success
 "A ; B"   
 # run B if A succeeded
@@ -198,6 +204,65 @@ Get from Paste into script `cat > myscript.sh`
 "A || B"
 # run A in background
 "A &" 
+```
+
+### check for empty strings
+
+```shell
+test -n "yest" ; echo $?
+0
+test -n "" ; echo $?    
+1
+test -n  ; echo $?  
+0
+test -n $CIRCLE_PULL_REQUEST ; echo $?
+0
+test -n "$CIRCLE_PULL_REQUEST" ; echo $?
+1
+```
+
+### diff between files
+
+```shell
+cat file1 && echo "\n" && cat file2
+a
+b
+c
+d
+e
+
+
+d
+e
+f
+g
+
+# get lines not that are not in each file
+▶ cat file1 file2 | sort | uniq -u   
+a
+b
+c
+f
+g
+
+#find lines only in file1
+comm -23 file1 file2 
+a
+b
+c
+
+#find lines only in file2
+comm -13 file1 file2 
+f
+g
+
+#find lines in both files
+comm -12 file1 file2 
+d
+e
+
+# cuts from a forward slash
+ - cat file.txt | cut -d "/" -f3-
 ```
 
 ## Burp
@@ -364,11 +429,31 @@ curl ${H1_HOSTNAME} -H 'User-Agent: '"${H1_FUZZ_UG}"'' \
 #get all DockerHub images from a company
 curl -s "https://hub.docker.com/v2/repositories/someCompany/?page_size=100" | jq -r '.results|.[]|.name'
 
+
+# no Cache header
+curl -H 'Cache-Control: no-cache, no-store' http://www.example.com
+
 #Silent
 curl -s 'http://example.com' > /dev/null
 
+# Test SQL injection
+curl -I http://<http_hostname>:<external_port>/\?id\=%27%20OR%20%271
+
+# Test Cross-site scripting
+curl -I http://<http_hostname>:<external_port>/\?id\=\<script\>alert\(\1\)\</script\>
+
+# Test command injection
+curl -I http://<http_hostname>:<external_port>/\?id\=%3B+%2Fsbin%2Fshutdown
+
+# Test code injection
+curl -I http://<http_hostname>:<external_port>/\?id\=phpinfo\(\)
+
 # Trace / debug
 curl --trace-ascii - https://example.com
+
+# Perpetual Healthcheck in Docker Image like https://hub.docker.com/r/curlimages/curl
+HEALTHCHECK --interval=5m --timeout=3s \
+  CMD curl -f http://localhost/ || exit 1
 
 # Get from GitHub
 curl -LJO https://github.com/foo/bar/v0.2.1
@@ -701,6 +786,19 @@ brew edit foo/tools/some-cli
 ```
 
 ## Vulnerabilities
+
+### Bug Bounty reports
+
+Bug Bounty reports don't tell to yield the most complex bugs. But you will see:
+
+- Subdomain takeovers
+- API keys, tokens inside of apps or in web sites
+- Public access to Docker hub images, GitHub repos that should be private
+- Misconfigured third party software ( Jira, ServiceNow )
+- Public access to debug logs, profilers,crash logs
+- Leaked employee credentials
+- Third party account takeovers ( instagram, twitter )
+- Firewall config issues
 
 ### Loose Cookie attributes
 
