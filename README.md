@@ -20,6 +20,7 @@
     - [Operators](#operators)
     - [check for empty strings](#check-for-empty-strings)
     - [diff between files](#diff-between-files)
+    - [grep](#grep)
 - [Burp](#burp)
     - [Search Burp files](#search-burp-files)
     - [Replay requests](#replay-requests)
@@ -263,6 +264,14 @@ e
 
 # cuts from a forward slash
  - cat file.txt | cut -d "/" -f3-
+```
+
+### grep
+
+```shell
+# grep OR and case insensitive
+cat some_file | grep -i 'nz\|au'
+
 ```
 
 ## Burp
