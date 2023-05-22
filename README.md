@@ -429,13 +429,18 @@ Notice 10 requests sent at once.
 ## cURL
 
 ```bash
-#generate a random cookie string
+# generate a random cookie string
 curl 127.0.0.1:8080 --cookie "CUSTOMER_COOKIE=$(openssl rand -hex 4)"
 
-#include env variables ( double quoted )
+# POST request
+curl -v -k "$URL" \
+  -H 'Content-Type: application/json' \
+  --data @payload.json
+
+# environment variables ( double quoted )
 curl ${H1_HOSTNAME} -H 'User-Agent: '"${H1_FUZZ_UG}"'' \ 
 
-#get all DockerHub images from a company
+# get all DockerHub images from a company
 curl -s "https://hub.docker.com/v2/repositories/someCompany/?page_size=100" | jq -r '.results|.[]|.name'
 
 
@@ -792,6 +797,15 @@ brew audit foo/tools/some-cli --online --git --skip-style -d
 # Edit a formula locally
 brew edit foo/tools/some-cli
 
+# check installed versions
+
+brew list --formulae |
+xargs brew info --json |
+jq -r '
+    ["name", "latest", "installed version(s)"],
+    (.[] | [ .name, .versions.stable, (.installed[] | .version) ])
+    | @tsv
+'
 ```
 
 ## Vulnerabilities
