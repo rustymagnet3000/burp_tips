@@ -1,6 +1,8 @@
-# DNS, Vulnerabilities, Burp, JMeter, AB, HAProxy, cURL, brew tips
+# AppSec Dumping Ground
 
-<!-- TOC depthfrom:2 depthto:3 withlinks:true updateonsave:true orderedlist:false -->
+Over time you collect lots of small, useful tips.  Below is my attempt to write some of them down.
+
+<!-- TOC -->
 
 - [Reconnaissance](#reconnaissance)
     - [Exposed passwords](#exposed-passwords)
@@ -18,8 +20,8 @@
 - [Shell tricks](#shell-tricks)
     - [Trick in Container with no Vi / nano](#trick-in-container-with-no-vi--nano)
     - [Operators](#operators)
-    - [check for empty strings](#check-for-empty-strings)
     - [diff between files](#diff-between-files)
+    - [grep](#grep)
 - [Burp](#burp)
     - [Search Burp files](#search-burp-files)
     - [Replay requests](#replay-requests)
@@ -204,11 +206,10 @@ cat > myscript.sh
 "A || B"
 # run A in background
 "A &" 
-```
+# test return code
+terraform fmt -check ; test $? -eq 0 
 
-### check for empty strings
-
-```shell
+# check for empty strings
 test -n "yest" ; echo $?
 0
 test -n "" ; echo $?    
@@ -263,6 +264,14 @@ e
 
 # cuts from a forward slash
  - cat file.txt | cut -d "/" -f3-
+```
+
+### grep
+
+```shell
+# grep OR and case insensitive
+cat some_file | grep -i 'nz\|au'
+
 ```
 
 ## Burp
@@ -420,13 +429,18 @@ Notice 10 requests sent at once.
 ## cURL
 
 ```bash
-#generate a random cookie string
+# generate a random cookie string
 curl 127.0.0.1:8080 --cookie "CUSTOMER_COOKIE=$(openssl rand -hex 4)"
 
-#include env variables ( double quoted )
+# POST request [ inferred from --data ] with body in file call payload.json
+curl -v -k "$URL" \
+  -H 'Content-Type: application/json' \
+  --data @payload.json
+
+# environment variables ( double quoted )
 curl ${H1_HOSTNAME} -H 'User-Agent: '"${H1_FUZZ_UG}"'' \ 
 
-#get all DockerHub images from a company
+# get all DockerHub images from a company
 curl -s "https://hub.docker.com/v2/repositories/someCompany/?page_size=100" | jq -r '.results|.[]|.name'
 
 
@@ -783,6 +797,15 @@ brew audit foo/tools/some-cli --online --git --skip-style -d
 # Edit a formula locally
 brew edit foo/tools/some-cli
 
+# check installed versions
+
+brew list --formulae |
+xargs brew info --json |
+jq -r '
+    ["name", "latest", "installed version(s)"],
+    (.[] | [ .name, .versions.stable, (.installed[] | .version) ])
+    | @tsv
+'
 ```
 
 ## Vulnerabilities
