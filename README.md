@@ -18,40 +18,39 @@
 - [Shell tricks](#shell-tricks)
     - [Trick in Container with no Vi / nano](#trick-in-container-with-no-vi--nano)
     - [Operators](#operators)
-    - [check for empty strings](#check-for-empty-strings)
-    - [diff between files](#diff-between-files)
-    - [grep](#grep)
-- [Burp](#burp)
-    - [Search Burp files](#search-burp-files)
-    - [Replay requests](#replay-requests)
-    - [Replay requests turbo](#replay-requests-turbo)
-    - [Enumeration](#enumeration)
-    - [Inject XSS Payload](#inject-xss-payload)
-- [JMeter](#jmeter)
-    - [Set a replayed request](#set-a-replayed-request)
-    - [Summary Report](#summary-report)
-    - [Send Parallel requests](#send-parallel-requests)
-- [cURL](#curl)
-- [Apache Bench](#apache-bench)
-    - [load test a container](#load-test-a-container)
-- [haproxy](#haproxy)
-    - [Install](#install)
-    - [Run](#run)
-    - [Validate config file](#validate-config-file)
-    - [Example Proxy Pass all data](#example-proxy-pass-all-data)
-    - [Example remove Cookies and add header](#example-remove-cookies-and-add-header)
-    - [Replace user-agent](#replace-user-agent)
-- [DNS](#dns)
-- [Homebrew](#homebrew)
-    - [Brew](#brew)
-- [Vulnerabilities](#vulnerabilities)
-    - [Bug Bounty reports](#bug-bounty-reports)
-    - [Loose Cookie attributes](#loose-cookie-attributes)
-    - [Subdomain Takeovers](#subdomain-takeovers)
-    - [XSS Payloads - Stored XSS](#xss-payloads---stored-xss)
-    - [Use encoded colon XSS Payloads](#use-encoded-colon-xss-payloads)
-    - [Phishing](#phishing)
-    - [Billion Laughs Attack](#billion-laughs-attack)
+    - [](#)
+    - [](#)
+- [](#)
+    - [](#)
+    - [](#)
+    - [](#)
+    - [](#)
+    - [](#)
+- [](#)
+    - [](#)
+    - [](#)
+    - [](#)
+- [](#)
+- [](#)
+    - [](#)
+- [](#)
+    - [](#)
+    - [](#)
+    - [](#)
+    - [](#)
+    - [](#)
+    - [](#)
+- [](#)
+- [](#)
+    - [](#)
+- [](#)
+    - [](#)
+    - [](#)
+    - [](#)
+    - [](#)
+    - [](#)
+    - [](#)
+    - [](#)
 
 <!-- /TOC -->
 
@@ -205,11 +204,10 @@ cat > myscript.sh
 "A || B"
 # run A in background
 "A &" 
-```
+# test return code
+terraform fmt -check ; test $? -eq 0 
 
-### check for empty strings
-
-```shell
+# check for empty strings
 test -n "yest" ; echo $?
 0
 test -n "" ; echo $?    
@@ -432,7 +430,7 @@ Notice 10 requests sent at once.
 # generate a random cookie string
 curl 127.0.0.1:8080 --cookie "CUSTOMER_COOKIE=$(openssl rand -hex 4)"
 
-# POST request
+# POST request [ inferred from --data ] with body in file call payload.json
 curl -v -k "$URL" \
   -H 'Content-Type: application/json' \
   --data @payload.json
