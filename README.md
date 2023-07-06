@@ -4,55 +4,75 @@ Over time you collect lots of small, useful tips.  Below is my attempt to write 
 
 <!-- TOC -->
 
-- [Reconnaissance](#reconnaissance)
-    - [Exposed passwords](#exposed-passwords)
-    - [Domain / Port issues](#domain--port-issues)
-    - [Domain names](#domain-names)
-    - [fast scanning on large number of hosts](#fast-scanning-on-large-number-of-hosts)
-    - [Print Server's Certificate Chain](#print-servers-certificate-chain)
-- [Proxy traffic](#proxy-traffic)
-    - [macOS env variable](#macos-env-variable)
-    - [Jetbrains IDE](#jetbrains-ide)
-    - [macOS Desktop apps](#macos-desktop-apps)
-    - [Proxy OpenSSL](#proxy-openssl)
-    - [Invisble proxying](#invisble-proxying)
-    - [Add debug logging, as alternative to proxying](#add-debug-logging-as-alternative-to-proxying)
-- [Shell tricks](#shell-tricks)
-    - [Trick in Container with no Vi / nano](#trick-in-container-with-no-vi--nano)
-    - [Operators](#operators)
-    - [diff between files](#diff-between-files)
-    - [grep](#grep)
-- [Burp](#burp)
-    - [Search Burp files](#search-burp-files)
-    - [Replay requests](#replay-requests)
-    - [Replay requests turbo](#replay-requests-turbo)
-    - [Enumeration](#enumeration)
-    - [Inject XSS Payload](#inject-xss-payload)
-- [JMeter](#jmeter)
-    - [Set a replayed request](#set-a-replayed-request)
-    - [Summary Report](#summary-report)
-    - [Send Parallel requests](#send-parallel-requests)
-- [cURL](#curl)
-- [Apache Bench](#apache-bench)
-    - [load test a container](#load-test-a-container)
-- [haproxy](#haproxy)
-    - [Install](#install)
-    - [Run](#run)
-    - [Validate config file](#validate-config-file)
-    - [Example Proxy Pass all data](#example-proxy-pass-all-data)
-    - [Example remove Cookies and add header](#example-remove-cookies-and-add-header)
-    - [Replace user-agent](#replace-user-agent)
-- [DNS](#dns)
-- [Homebrew](#homebrew)
-    - [Brew](#brew)
-- [Vulnerabilities](#vulnerabilities)
-    - [Bug Bounty reports](#bug-bounty-reports)
-    - [Loose Cookie attributes](#loose-cookie-attributes)
-    - [Subdomain Takeovers](#subdomain-takeovers)
-    - [XSS Payloads - Stored XSS](#xss-payloads---stored-xss)
-    - [Use encoded colon XSS Payloads](#use-encoded-colon-xss-payloads)
-    - [Phishing](#phishing)
-    - [Billion Laughs Attack](#billion-laughs-attack)
+- [AppSec Dumping Ground](#appsec-dumping-ground)
+    - [Reconnaissance](#reconnaissance)
+        - [Exposed passwords](#exposed-passwords)
+        - [Domain / Port issues](#domain--port-issues)
+        - [Domain names](#domain-names)
+        - [fast scanning on large number of hosts](#fast-scanning-on-large-number-of-hosts)
+        - [Print Server's Certificate Chain](#print-servers-certificate-chain)
+    - [Proxy traffic](#proxy-traffic)
+        - [macOS env variable](#macos-env-variable)
+        - [Jetbrains IDE](#jetbrains-ide)
+        - [macOS Desktop apps](#macos-desktop-apps)
+        - [Proxy OpenSSL](#proxy-openssl)
+        - [Invisble proxying](#invisble-proxying)
+        - [Add debug logging, as alternative to proxying](#add-debug-logging-as-alternative-to-proxying)
+    - [Shell tricks](#shell-tricks)
+        - [Trick in Container with no Vi / nano](#trick-in-container-with-no-vi--nano)
+        - [Operators](#operators)
+        - [diff between files](#diff-between-files)
+        - [grep](#grep)
+    - [Burp](#burp)
+        - [Search Burp files](#search-burp-files)
+        - [Replay requests](#replay-requests)
+            - [Same requests many times](#same-requests-many-times)
+        - [Replay requests turbo](#replay-requests-turbo)
+        - [Enumeration](#enumeration)
+            - [Find API](#find-api)
+            - [Response](#response)
+            - [Burp Intruder - Username Generator](#burp-intruder---username-generator)
+            - [Burp Intruder - Brute Forcer](#burp-intruder---brute-forcer)
+        - [Inject XSS Payload](#inject-xss-payload)
+            - [Request](#request)
+            - [Burp Extender](#burp-extender)
+            - [Burp Intruder set up](#burp-intruder-set-up)
+    - [JMeter](#jmeter)
+        - [Set a replayed request](#set-a-replayed-request)
+        - [Summary Report](#summary-report)
+        - [Send Parallel requests](#send-parallel-requests)
+    - [cURL](#curl)
+    - [Apache Bench](#apache-bench)
+        - [load test a container](#load-test-a-container)
+            - [Verbose flag to verify HTTP response code](#verbose-flag-to-verify-http-response-code)
+    - [haproxy](#haproxy)
+        - [Install](#install)
+        - [Run](#run)
+        - [Validate config file](#validate-config-file)
+        - [Example Proxy Pass all data](#example-proxy-pass-all-data)
+        - [Example remove Cookies and add header](#example-remove-cookies-and-add-header)
+        - [Replace user-agent](#replace-user-agent)
+            - [More HAProxy commands](#more-haproxy-commands)
+            - [Local Echo Server](#local-echo-server)
+    - [DNS](#dns)
+    - [Homebrew](#homebrew)
+        - [Brew](#brew)
+    - [Vulnerabilities](#vulnerabilities)
+        - [Bug Bounty reports](#bug-bounty-reports)
+        - [Loose Cookie attributes](#loose-cookie-attributes)
+            - [Mitigation](#mitigation)
+        - [Subdomain Takeovers](#subdomain-takeovers)
+        - [XSS Payloads - Stored XSS](#xss-payloads---stored-xss)
+            - [Mitigation](#mitigation)
+            - [Simple XSS Payloads](#simple-xss-payloads)
+        - [Use encoded colon XSS Payloads](#use-encoded-colon-xss-payloads)
+        - [Phishing](#phishing)
+            - [Mitigation](#mitigation)
+        - [Billion Laughs Attack](#billion-laughs-attack)
+            - [Background](#background)
+            - [Simulating the attack](#simulating-the-attack)
+            - [Sample code](#sample-code)
+            - [Mitigations](#mitigations)
 
 <!-- /TOC -->
 
@@ -272,6 +292,11 @@ e
 # grep OR and case insensitive
 cat some_file | grep -i 'nz\|au'
 
+# count lines
+cat ip_deny.tf | grep "ip =" | uniq -c
+2       ip = "192.168.0.1"
+1       ip = "192.168.0.2"
+1       ip = "192.168.0.3"
 ```
 
 ## Burp
@@ -429,6 +454,10 @@ Notice 10 requests sent at once.
 ## cURL
 
 ```bash
+
+# simple GET request
+curl -i -H "Accept: application/json" -H "Content-Type: application/json" -X GET https://www.google.com/deadbeef
+
 # generate a random cookie string
 curl 127.0.0.1:8080 --cookie "CUSTOMER_COOKIE=$(openssl rand -hex 4)"
 
