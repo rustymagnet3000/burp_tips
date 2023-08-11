@@ -292,8 +292,8 @@ e
 # grep OR and case insensitive
 cat some_file | grep -i 'nz\|au'
 
-# count lines
-cat ip_deny.tf | grep "ip =" | uniq -c
+# count lines ( important to sort first)
+cat ip_deny.tf | grep "ip =" |sort | uniq -c
 2       ip = "192.168.0.1"
 1       ip = "192.168.0.2"
 1       ip = "192.168.0.3"
@@ -507,9 +507,12 @@ curl --write-out '%{http_code}' --silent --output /dev/null http://example.com
 #Watch redirects
 curl -v -L ${TARGET_URL_AND_PATH} 2>&1 | egrep "^> (Host:|GET)"
 
-#loop requests with cURL
-for i in {1..10}; do curl -s -k https://httpbin.org/ip; done | grep origin
+#loop requests
+# HEAD
 for i in {1..25}; do curl -I https://${HOSTNAME}; done | grep HTTP\n
+
+# GET with zero feedback on progress
+for i in {1..50}; do curl -s -H 'Content-type: application/json'  -H $'Secret: Foobar;' https://${HOSTNAME}; done |  > /dev/null 
 
 # POST to a Slack Webhook
 curl -X POST -H 'Content-type: application/json' --data '{"text":"Hello, World!"}' ${SLACK_URL}
