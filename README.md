@@ -33,6 +33,7 @@ Over time you collect lots of small, useful tips.  Below is my attempt to write 
             - [Response](#response)
             - [Burp Intruder - Username Generator](#burp-intruder---username-generator)
             - [Burp Intruder - Brute Forcer](#burp-intruder---brute-forcer)
+            - [Burp Intruder - Brute Forcer with Random Numbers](#burp-intruder---brute-forcer-with-random-numbers)
         - [Inject XSS Payload](#inject-xss-payload)
             - [Request](#request)
             - [Burp Extender](#burp-extender)
@@ -372,6 +373,17 @@ Host: foobar.com
   - Select the `min length` and `max length`
   
 > You can slow the enumeration attempt to avoid `Rate Limits` by adding a custom `Resource Pool` inside of `Intruder`.  You can delay the time between requests.
+
+#### Burp Intruder - Brute Forcer with Random Numbers
+
+- < same as above steps>
+- In `Payloads` tab, select:
+- `Payload Type: Numbers`
+  - Select Number Range to the `Random` ( instead of default `Sequential`)
+  - Select the `From` and `To` numbers
+  - I also set the min and max digits.
+  
+> You can slow the enumeration attempt to avoid `Rate Limits` by adding a custom `Resource Pool` inside of `Intruder`.  You can delay the time or number of concurrent requests.
 
 ### Inject XSS Payload
 
